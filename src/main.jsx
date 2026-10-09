@@ -29,7 +29,10 @@ import {
 import './styles.css'
 import DotGrid from './components/DotGrid'
 
-const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+const siteBase = typeof window !== 'undefined' && window.location.pathname.startsWith('/lingluan-blog')
+  ? '/lingluan-blog/'
+  : import.meta.env.BASE_URL
+const asset = (path) => `${siteBase}${path.replace(/^\/+/, '')}`
 const profile = asset('images/profile.jpg')
 
 const notes = [
