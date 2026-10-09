@@ -29,7 +29,8 @@ import {
 import './styles.css'
 import DotGrid from './components/DotGrid'
 
-const profile = '/images/profile.jpg'
+const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+const profile = asset('images/profile.jpg')
 
 const notes = [
   { title: '把一台旧电脑重新装好的晚上', excerpt: '从拆机、清灰到系统重装，记录一套不依赖运气的排障流程。', category: '装机排障', date: '2026.09.28', read: '6 min', accent: 'orange' },
@@ -41,12 +42,12 @@ const projects = [
 ]
 
 const gallery = [
-  { src: '/images/gallery/valley.jpg', title: '山谷 · 01', note: '风从山脊经过', ratio: 'portrait' },
-  { src: '/images/gallery/lake.jpg', title: '湖泊 · 02', note: '把视线放远一点', ratio: 'wide' },
-  { src: '/images/gallery/mountains.jpg', title: '群山 · 03', note: '留给以后的一次出发', ratio: 'square' },
-  { src: '/images/gallery/forest.jpg', title: '森林 · 04', note: '安静地走一段路', ratio: 'wide' },
-  { src: '/images/gallery/waterfall.jpg', title: '瀑布 · 05', note: '保持一点流动', ratio: 'portrait' },
-  { src: '/images/gallery/coast.jpg', title: '海岸 · 06', note: '在潮汐里放松', ratio: 'square' },
+  { src: asset('images/gallery/valley.jpg'), title: '山谷 · 01', note: '风从山脊经过', ratio: 'portrait' },
+  { src: asset('images/gallery/lake.jpg'), title: '湖泊 · 02', note: '把视线放远一点', ratio: 'wide' },
+  { src: asset('images/gallery/mountains.jpg'), title: '群山 · 03', note: '留给以后的一次出发', ratio: 'square' },
+  { src: asset('images/gallery/forest.jpg'), title: '森林 · 04', note: '安静地走一段路', ratio: 'wide' },
+  { src: asset('images/gallery/waterfall.jpg'), title: '瀑布 · 05', note: '保持一点流动', ratio: 'portrait' },
+  { src: asset('images/gallery/coast.jpg'), title: '海岸 · 06', note: '在潮汐里放松', ratio: 'square' },
 ]
 
 function AnimatedText({ children, className = '' }) {
