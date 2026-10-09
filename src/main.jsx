@@ -27,28 +27,26 @@ import {
   X,
 } from 'lucide-react'
 import './styles.css'
+import DotGrid from './components/DotGrid'
 
 const profile = '/images/profile.jpg'
 
 const notes = [
   { title: '把一台旧电脑重新装好的晚上', excerpt: '从拆机、清灰到系统重装，记录一套不依赖运气的排障流程。', category: '装机排障', date: '2026.09.28', read: '6 min', accent: 'orange' },
-  { title: '我怎样用 Agent 拆解一个陌生问题', excerpt: '把问题拆成上下文、验证和收敛，给自学留下一条可重复的路径。', category: 'Agent', date: '2026.09.16', read: '8 min', accent: 'blue' },
-  { title: '信息安全专业大一的第一张地图', excerpt: '网络、系统、密码学和实践之间，先建立自己的坐标系。', category: '学习记录', date: '2026.08.31', read: '5 min', accent: 'green' },
+  { title: '面向个人学习的 Agent 协作方法研究', excerpt: '摘要：将上下文建模、任务分解、工具验证与结果复盘组织为可重复的协作流程，并讨论它在自学场景中的边界。', category: 'Agent', date: '2026.09.16', read: '12 min', accent: 'blue' },
 ]
 
 const projects = [
-  { name: '夜航排障手册', type: 'Knowledge base', detail: '收集那些容易被忽略，但很有用的电脑维修与系统排障笔记。', state: '持续更新', icon: TerminalSquare, tone: 'orange' },
   { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue' },
-  { name: '安全专业地图', type: 'Study project', detail: '为大一阶段建立的知识关系图，记录正在补齐的基础。', state: '初稿', icon: ShieldCheck, tone: 'green' },
 ]
 
 const gallery = [
-  { src: profile, title: '头像 · 2025', note: '一张被保留下来的近照', ratio: 'portrait' },
-  { src: profile, title: '柔光时刻', note: '以后这里会放更多生活切片', ratio: 'wide' },
-  { src: profile, title: 'Gallery draft 03', note: '预留一张新的照片', ratio: 'square' },
-  { src: profile, title: 'Gallery draft 04', note: '预留一张新的照片', ratio: 'wide' },
-  { src: profile, title: 'Gallery draft 05', note: '预留一张新的照片', ratio: 'portrait' },
-  { src: profile, title: 'Gallery draft 06', note: '预留一张新的照片', ratio: 'square' },
+  { src: '/images/gallery/valley.jpg', title: '山谷 · 01', note: '风从山脊经过', ratio: 'portrait' },
+  { src: '/images/gallery/lake.jpg', title: '湖泊 · 02', note: '把视线放远一点', ratio: 'wide' },
+  { src: '/images/gallery/mountains.jpg', title: '群山 · 03', note: '留给以后的一次出发', ratio: 'square' },
+  { src: '/images/gallery/forest.jpg', title: '森林 · 04', note: '安静地走一段路', ratio: 'wide' },
+  { src: '/images/gallery/waterfall.jpg', title: '瀑布 · 05', note: '保持一点流动', ratio: 'portrait' },
+  { src: '/images/gallery/coast.jpg', title: '海岸 · 06', note: '在潮汐里放松', ratio: 'square' },
 ]
 
 function AnimatedText({ children, className = '' }) {
@@ -67,6 +65,7 @@ function App() {
   }, [dark])
   return (
     <div className="site-shell">
+      <DotGrid baseColor={dark ? '#454841' : '#c8c9c1'} activeColor={dark ? '#e8916e' : '#e67851'} />
       <Header dark={dark} setDark={setDark} />
       <main className="main-content">
         <Routes>
@@ -133,6 +132,7 @@ function HomePage() {
           <a className="button button-quiet" href="https://github.com/shisjsji" target="_blank" rel="noreferrer">GitHub <ExternalLink size={14} /></a>
         </div>
         <div className="hero-meta"><span>在校学习</span><span className="meta-separator" /><span>常驻互联网</span><span className="meta-separator" /><span>保持好奇</span></div>
+        <ContactWidget />
       </div>
       <div className="hero-portrait-wrap">
         <div className="portrait-note note-top"><span>01</span><span>about me</span></div>
@@ -151,9 +151,10 @@ function HomePage() {
       <div className="now-grid">
         <Reveal className="now-feature"><div className="feature-icon"><Sparkles size={20} /></div><div><p className="card-label">LEARNING / 01</p><h3>和 Codex 以及各 agent 一起学习</h3><p>把想法变成可以运行的东西，在每一次提问、验证和修正里建立自己的方法。</p></div><ArrowDownRight className="feature-arrow" size={20} /></Reveal>
         <Reveal className="now-list">
-          <div className="now-row"><span className="row-number">02</span><div><p>折腾电脑装机与疑难杂症</p><span>硬件 / 系统 / 现场解决</span></div><ChevronRight size={17} /></div>
-          <div className="now-row"><span className="row-number">03</span><div><p>给信息安全打好基础</p><span>网络 / Linux / 基础实践</span></div><ChevronRight size={17} /></div>
-          <div className="now-row"><span className="row-number">04</span><div><p>记录一些真正有用的东西</p><span>笔记 / 复盘 / 小项目</span></div><ChevronRight size={17} /></div>
+          <div className="now-row"><span className="row-number">02</span><div><p>把 Agent 协作整理成论文草稿</p><span>问题建模 / 实验记录 / 复盘</span></div><ChevronRight size={17} /></div>
+          <div className="now-row"><span className="row-number">03</span><div><p>折腾电脑装机与疑难杂症</p><span>硬件 / 系统 / 现场解决</span></div><ChevronRight size={17} /></div>
+          <div className="now-row"><span className="row-number">04</span><div><p>给信息安全打好基础</p><span>网络 / Linux / 基础实践</span></div><ChevronRight size={17} /></div>
+          <div className="now-row"><span className="row-number">05</span><div><p>把值得留住的过程写下来</p><span>笔记 / 风景 / 小项目</span></div><ChevronRight size={17} /></div>
         </Reveal>
       </div>
     </section>
@@ -177,6 +178,7 @@ function AboutPage() {
   return <div className="page-wrap inner-page"><PageIntro kicker="ABOUT ME / 01" title={<>关于 <em>凌乱的风&</em></>} intro="我还在长成自己的样子。这里放下已经知道的，也放下正在学会的。" />
     <div className="about-layout"><aside className="sticky-aside"><span className="aside-label">PROFILE / 2008—NOW</span><div className="mini-profile"><img src={profile} alt="凌乱的风&" /><div><strong>凌乱的风&</strong><span>信息安全技术 · 大一</span></div></div><p>一个喜欢拆解问题、修电脑，并且对新工具保持好奇的人。</p></aside><div className="about-content">
       <section className="prose-block"><span className="section-kicker">01 / THE SHORT VERSION</span><h2>先从一台电脑开始，<br />再走远一点。</h2><p>我出生于 2008 年，现在是一名信息安全技术专业的大一学生。比起把自己定义成“擅长什么”，我更愿意记录自己正在如何变得更好。</p><p>我会自己装机，处理那些看起来很麻烦的电脑问题；也在自学 Codex 和各类 agent，试着把它们变成可靠的思考伙伴。</p></section>
+      <ContactWidget />
       <section className="skills-block"><span className="section-kicker">02 / THINGS I DO</span><div className="skills-list"><Skill title="信息安全学习" detail="网络基础 · Linux · 继续补齐知识地图" icon={ShieldCheck} /><Skill title="装机与排障" detail="硬件组装 · 系统重装 · 疑难杂症处理" icon={TerminalSquare} /><Skill title="Codex & Agent" detail="拆解问题 · 快速验证 · 记录方法" icon={Sparkles} /></div></section>
       <section className="timeline-block"><span className="section-kicker">03 / TIMELINE</span><div className="timeline"><TimelineItem year="2008" title="出生" detail="开始一段很长的探索。" /><TimelineItem year="2025" title="遇见更多工具" detail="开始认真接触 Codex、agent 与更大的互联网。" /><TimelineItem year="2026" title="大一 · 信息安全技术" detail="在课堂之外，把基础知识变成自己的能力。" active /></div></section>
     </div></div>
@@ -188,14 +190,26 @@ function TimelineItem({ year, title, detail, active }) { return <div className={
 
 function PageIntro({ kicker, title, intro }) { return <Reveal className="page-intro"><span className="section-kicker">{kicker}</span><h1>{title}</h1><p>{intro}</p></Reveal> }
 
+function ContactWidget() {
+  return <section className="contact-widget" aria-label="联系方式">
+    <div className="contact-widget-heading"><span className="section-kicker">CONTACT / 04</span><h3>联系方式</h3></div>
+    <div className="contact-links">
+      <a className="contact-item" href="https://github.com/shisjsji" target="_blank" rel="noreferrer"><span className="contact-label">GitHub</span><span className="contact-value">@shisjsji <ExternalLink size={13} /></span></a>
+      <a className="contact-item" href="https://www.coolapk.com/u/30432128" target="_blank" rel="noreferrer"><span className="contact-label">酷安</span><span className="contact-value">30432128 <ExternalLink size={13} /></span></a>
+      <div className="contact-item contact-wechat"><span className="contact-label">微信号码</span><span className="contact-value">XovoeH_Jun13 · x080814OwO</span></div>
+    </div>
+  </section>
+}
+
 function NotesPage() {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState('全部')
-  const categories = ['全部', '装机排障', 'Agent', '学习记录']
+  const categories = ['全部', '装机排障', 'Agent']
   const filtered = useMemo(() => notes.filter((note) => (active === '全部' || note.category === active) && `${note.title}${note.excerpt}`.toLowerCase().includes(query.toLowerCase())), [active, query])
   return <div className="page-wrap inner-page"><PageIntro kicker="NOTES / 02" title={<>一些正在成形的<em>想法。</em></>} intro="不追求每天更新，只留下下一次还会想打开的东西。" />
     <section className="notes-toolbar"><div className="filter-tabs">{categories.map((category) => <button key={category} className={active === category ? 'filter-tab active' : 'filter-tab'} onClick={() => setActive(category)}>{category}</button>)}</div><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索笔记" /></label></section>
     <section className="notes-page-list">{filtered.length ? filtered.map((note, index) => <NoteRow key={note.title} note={note} index={index} />) : <div className="empty-state"><ListFilter size={20} /><p>还没有找到这条记录。</p></div>}</section>
+    <article className="agent-paper"><span className="section-kicker">AGENT / FIELD PAPER</span><h2>面向个人学习的 Agent 协作方法研究</h2><p className="agent-paper-lead">摘要：本文以个人学习中的真实问题为对象，尝试建立一套由问题建模、上下文准备、分步执行、证据核验和结果复盘组成的 Agent 协作流程。实践表明，Agent 的价值不在于替代思考，而在于降低验证成本，让学习者更快获得可检查的中间结果。</p><div className="agent-paper-grid"><div><span>01</span><h3>问题建模</h3><p>先明确目标、限制条件与完成标准，把“帮我做点什么”改写成可验证的问题。</p></div><div><span>02</span><h3>分步执行</h3><p>让 Agent 先探索再修改，每一步都保留输入、输出和依据，避免结果变成无法解释的黑箱。</p></div><div><span>03</span><h3>结果复盘</h3><p>通过运行结果、文档来源与失败记录交叉检查，沉淀下一次可以复用的提示与流程。</p></div></div><p className="agent-paper-conclusion"><strong>结论。</strong> 对个人学习而言，稳定的协作节奏比一次性生成完整答案更重要。Agent 应该成为可追问、可校验、可修正的实验伙伴。</p></article>
     <div className="notes-footnote"><Command size={15} />更多笔记正在路上 <span>·</span> 最后更新于 2026.09</div>
   </div>
 }

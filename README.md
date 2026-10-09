@@ -34,3 +34,5 @@ pnpm dev
 ## GitHub Pages
 
 仓库建立后，设置 GitHub Actions 使用 `actions/deploy-pages` 部署 `dist`。项目已经预留 `base: './'`，可直接使用仓库路径访问。
+
+图库草稿使用 Unsplash 风景照片并已保存到 `public/images/gallery`，后续可以直接替换该目录下的图片与 `src/main.jsx` 中的图库数据。
