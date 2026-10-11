@@ -46,6 +46,7 @@ export default function DotGrid({
   const canvasRef = useRef(null)
   const dotsRef = useRef([])
   const pointerRef = useRef({ x: 0, y: 0, lastTime: 0, lastX: 0, lastY: 0 })
+  const drawRef = useRef(null)
 
   const baseRgb = useMemo(() => hexToRgb(baseColor), [baseColor])
   const activeRgb = useMemo(() => hexToRgb(activeColor), [activeColor])
@@ -87,18 +88,21 @@ export default function DotGrid({
       }
     }
     dotsRef.current = dots
+    drawRef.current?.()
   }, [dotSize, gap])
 
   useEffect(() => {
     if (!circlePath) return undefined
     let frame
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const proximitySquared = proximity * proximity
     const draw = () => {
       const canvas = canvasRef.current
       const context = canvas?.getContext('2d')
       if (!canvas || !context) return
       context.clearRect(0, 0, canvas.width, canvas.height)
-      const { x: pointerX, y: pointerY } = pointerRef.current
+      const pointerX = reduceMotion ? Number.NEGATIVE_INFINITY : pointerRef.current.x
+      const pointerY = reduceMotion ? Number.NEGATIVE_INFINITY : pointerRef.current.y
       for (const dot of dotsRef.current) {
         const distanceX = dot.cx - pointerX
         const distanceY = dot.cy - pointerY
@@ -114,10 +118,14 @@ export default function DotGrid({
         context.fill(circlePath)
         context.restore()
       }
-      frame = requestAnimationFrame(draw)
+      if (!reduceMotion) frame = requestAnimationFrame(draw)
     }
+    drawRef.current = draw
     draw()
-    return () => cancelAnimationFrame(frame)
+    return () => {
+      cancelAnimationFrame(frame)
+      drawRef.current = null
+    }
   }, [activeRgb, baseColor, baseRgb, circlePath, proximity])
 
   useEffect(() => {
@@ -136,6 +144,7 @@ export default function DotGrid({
   }, [buildGrid])
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
     const move = (event) => {
       const now = performance.now()
       const pointer = pointerRef.current
@@ -172,7 +181,7 @@ export default function DotGrid({
         }
       }
     }
-    const click = (event) => {
+    const press = (event) => {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
       const x = event.clientX - rect.left
@@ -193,11 +202,11 @@ export default function DotGrid({
       }
     }
     const throttledMove = throttle(move, 50)
-    window.addEventListener('mousemove', throttledMove, { passive: true })
-    window.addEventListener('click', click)
+    window.addEventListener('pointermove', throttledMove, { passive: true })
+    window.addEventListener('pointerdown', press, { passive: true })
     return () => {
-      window.removeEventListener('mousemove', throttledMove)
-      window.removeEventListener('click', click)
+      window.removeEventListener('pointermove', throttledMove)
+      window.removeEventListener('pointerdown', press)
     }
   }, [maxSpeed, proximity, resistance, returnDuration, shockRadius, shockStrength, speedTrigger])
 
