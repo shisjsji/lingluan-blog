@@ -192,6 +192,7 @@ h2 { font-size:28px; letter-spacing:0; line-height:1.2; }
 .about-guestbook-link { margin-top:-42px; margin-bottom:58px; }
 .content-admin-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:-38px 0 26px; padding:13px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--muted); font-size:11px; }
 .content-admin-row a { display:inline-flex; align-items:center; gap:6px; color:var(--accent); white-space:nowrap; }
+.content-admin-row.about-admin-row { margin:0 0 28px; }
 .gallery-actions { display:flex; align-items:center; flex-wrap:wrap; gap:9px; margin:-23px 0 28px; }
 .gallery-edit-link { display:inline-flex; align-items:center; gap:6px; margin-left:auto; color:var(--muted); font-size:11px; }
 .gallery-edit-link:hover,.content-admin-row a:hover { color:var(--text); }

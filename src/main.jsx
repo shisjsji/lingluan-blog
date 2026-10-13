@@ -36,7 +36,7 @@ const siteBase = typeof window !== 'undefined' && window.location.pathname.start
 const asset = (path) => `${siteBase}${path.replace(/^\/+/, '')}`
 const profile = asset('images/profile.jpg')
 
-const { notes, agentPaper } = siteContent
+const { about, notes, agentPaper } = siteContent
 
 const projects = [
   { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue' },
@@ -184,13 +184,15 @@ function NoteRow({ note, index }) {
 }
 
 function AboutPage() {
+  const skillIcons = { security: ShieldCheck, terminal: TerminalSquare, agent: Sparkles }
   return <div className="page-wrap inner-page"><PageIntro kicker="关于我" title={<>关于 <em>凌乱的风&</em></>} intro="我还在长成自己的样子。这里放下已经知道的，也放下正在学会的。" />
-    <div className="about-layout"><aside className="sticky-aside"><span className="aside-label">PROFILE / 2008-NOW</span><div className="mini-profile"><img src={profile} alt="凌乱的风&" /><div><strong>凌乱的风&</strong><span>信息安全技术 · 大一</span></div></div><p>一个喜欢拆解问题、修电脑，并且对新工具保持好奇的人。</p></aside><div className="about-content">
-      <section className="prose-block"><h2>先从一台电脑开始，<br />再走远一点。</h2><p>我出生于 2008 年，现在是一名信息安全技术专业的大一学生。比起把自己定义成“擅长什么”，我更愿意记录自己正在如何变得更好。</p><p>我会自己装机，处理那些看起来很麻烦的电脑问题；也在自学 Codex 和各类 agent，试着把它们变成可靠的思考伙伴。</p></section>
+    <div className="about-layout"><aside className="sticky-aside"><span className="aside-label">PROFILE / 2008-NOW</span><div className="mini-profile"><img src={profile} alt="凌乱的风&" /><div><strong>凌乱的风&</strong><span>信息安全技术 · 大一</span></div></div><p>{about.summary}</p></aside><div className="about-content">
+      <div className="content-admin-row about-admin-row"><span>个人介绍、技能与成长记录保存在 GitHub。</span><a href={editorUrl('src/content/site-content.json')} target="_blank" rel="noreferrer">在线编辑关于我 <ExternalLink size={14} /></a></div>
+      <section className="prose-block"><h2>{about.heading}</h2>{about.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</section>
       <ContactWidget />
       <div className="about-guestbook-link"><Link to="/guestbook" className="text-link">看看访客留言 <ArrowUpRight size={15} /></Link></div>
-      <section className="skills-block"><h2>我正在积累的能力</h2><div className="skills-list"><Skill title="信息安全学习" detail="网络基础 · Linux · 继续补齐知识地图" icon={ShieldCheck} /><Skill title="装机与排障" detail="硬件组装 · 系统重装 · 疑难杂症处理" icon={TerminalSquare} /><Skill title="Codex & Agent" detail="拆解问题 · 快速验证 · 记录方法" icon={Sparkles} /></div></section>
-      <section className="timeline-block"><h2>成长记录</h2><div className="timeline"><TimelineItem year="2008" title="出生" detail="开始一段很长的探索。" /><TimelineItem year="2025" title="遇见更多工具" detail="开始认真接触 Codex、agent 与更大的互联网。" /><TimelineItem year="2026" title="大一 · 信息安全技术" detail="在课堂之外，把基础知识变成自己的能力。" active /></div></section>
+      <section className="skills-block"><h2>我正在积累的能力</h2><div className="skills-list">{about.skills.map((skill) => <Skill key={skill.title} title={skill.title} detail={skill.detail} icon={skillIcons[skill.icon] || Sparkles} />)}</div></section>
+      <section className="timeline-block"><h2>成长记录</h2><div className="timeline">{about.timeline.map((item) => <TimelineItem key={`${item.year}-${item.title}`} {...item} />)}</div></section>
     </div></div>
   </div>
 }

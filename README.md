@@ -42,7 +42,7 @@ pnpm dev
 
 ## 更新网站内容
 
-- 笔记与 Agent 文章：编辑 `src/content/site-content.json`。
+- 关于我的简介、技能、成长记录、笔记与 Agent 文章：编辑 `src/content/site-content.json`。
 - 图库标题与简介：编辑 `src/content/gallery.json`。
 - 自己上传的图片：上传到 `public/images/gallery/`，并在 `gallery.json` 中加入对应文件名、标题、简介和布局比例。
 - 在 GitHub 网页提交修改后，Actions 会自动重新构建并发布 GitHub Pages。
