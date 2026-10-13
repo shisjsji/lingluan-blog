@@ -187,6 +187,42 @@ h2 { font-size:28px; letter-spacing:0; line-height:1.2; }
   .footer-brand { width:100%; }
   .footer-links { flex-wrap:wrap; }
 }
+
+.home-guestbook { padding-top:58px; }
+.about-guestbook-link { margin-top:-42px; margin-bottom:58px; }
+.content-admin-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:-38px 0 26px; padding:13px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--muted); font-size:11px; }
+.content-admin-row a { display:inline-flex; align-items:center; gap:6px; color:var(--accent); white-space:nowrap; }
+.gallery-actions { display:flex; align-items:center; flex-wrap:wrap; gap:9px; margin:-23px 0 28px; }
+.gallery-edit-link { display:inline-flex; align-items:center; gap:6px; margin-left:auto; color:var(--muted); font-size:11px; }
+.gallery-edit-link:hover,.content-admin-row a:hover { color:var(--text); }
+.guestbook-widget { border-top:1px solid var(--line); padding-top:18px; }
+.guestbook-heading { display:flex; align-items:end; justify-content:space-between; gap:16px; }
+.guestbook-heading .section-kicker { margin-bottom:8px; }
+.guestbook-heading h2 { font-size:25px; }
+.guestbook-disclaimer { color:var(--muted); font-size:11px; line-height:1.7; margin-top:12px; }
+.guestbook-list { margin-top:18px; border-top:1px solid var(--line); }
+.guestbook-entry { padding:16px 0; border-bottom:1px solid var(--line); }
+.guestbook-entry-meta { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; font-size:11px; }
+.guestbook-entry-meta a { color:var(--accent); }
+.guestbook-entry-meta time { color:var(--muted); font-family:ui-monospace,'Cascadia Code','Segoe UI Mono',Consolas,monospace; font-size:10px; }
+.guestbook-entry p { color:var(--text); font-size:13px; line-height:1.75; white-space:pre-wrap; overflow-wrap:anywhere; }
+.guestbook-state { min-height:72px; display:flex; align-items:center; gap:6px; color:var(--muted); font-size:12px; border-bottom:1px solid var(--line); }
+.guestbook-state a { display:inline-flex; align-items:center; gap:4px; color:var(--accent); }
+.guestbook-widget.is-compact .guestbook-heading h2 { font-size:22px; }
+.guestbook-widget.is-compact .guestbook-disclaimer { margin-top:8px; }
+.guestbook-widget.is-compact .guestbook-entry { padding:13px 0; }
+.guestbook-page .guestbook-widget { max-width:780px; }
+
+@media (max-width:600px) {
+  .home-guestbook { padding-top:44px; }
+  .content-admin-row { align-items:flex-start; flex-direction:column; gap:8px; margin-top:-22px; }
+  .gallery-actions { align-items:stretch; }
+  .gallery-actions .button { flex:1 1 auto; }
+  .gallery-edit-link { margin-left:0; padding:8px 0; }
+  .guestbook-heading { align-items:flex-start; }
+  .guestbook-heading .button { padding-inline:11px; }
+  .about-guestbook-link { margin-top:-26px; margin-bottom:42px; }
+}
 @media (prefers-reduced-motion:reduce) { *,*:before,*:after { animation-duration:.01ms !important; transition-duration:.01ms !important; scroll-behavior:auto !important; } }
 
 /* Shape scale: 12px content surfaces, 8px controls, round identity marks. */

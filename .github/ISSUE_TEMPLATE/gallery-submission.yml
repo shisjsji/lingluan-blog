@@ -1,0 +1,32 @@
+name: 图库投稿
+description: 提交一张照片和它的标题、简介
+title: "照片投稿："
+body:
+  - type: markdown
+    attributes:
+      value: |
+        图片不会自动出现在网站。请填写信息并创建投稿，然后在投稿评论区上传图片；站主审核通过后会手动加入图库。
+  - type: input
+    id: photo-title
+    attributes:
+      label: 图片标题
+      description: 网站图库中显示的标题。
+      placeholder: 例如：海边的傍晚
+    validations:
+      required: true
+  - type: textarea
+    id: photo-description
+    attributes:
+      label: 图片简介
+      description: 用一句话介绍照片。
+      placeholder: 例如：沿着海岸走到太阳落下。
+    validations:
+      required: true
+  - type: textarea
+    id: photo-credit
+    attributes:
+      label: 拍摄者或来源（可选）
+      description: 请确保你有权分享这张照片。
+      placeholder: 拍摄者、拍摄地点或来源链接
+    validations:
+      required: false

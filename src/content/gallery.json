@@ -1,0 +1,8 @@
+[
+  { "file": "valley.jpg", "title": "山谷 · 01", "note": "风从山脊经过", "ratio": "portrait" },
+  { "file": "lake.jpg", "title": "湖泊 · 02", "note": "把视线放远一点", "ratio": "wide" },
+  { "file": "mountains.jpg", "title": "群山 · 03", "note": "留给以后的一次出发", "ratio": "square" },
+  { "file": "forest.jpg", "title": "森林 · 04", "note": "安静地走一段路", "ratio": "wide" },
+  { "file": "waterfall.jpg", "title": "瀑布 · 05", "note": "保持一点流动", "ratio": "portrait" },
+  { "file": "coast.jpg", "title": "海岸 · 06", "note": "在潮汐里放松", "ratio": "square" }
+]

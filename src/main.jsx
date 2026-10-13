@@ -27,6 +27,8 @@ import {
 } from 'lucide-react'
 import './styles.css'
 import DotGrid from './components/DotGrid'
+import siteContent from './content/site-content.json'
+import galleryContent from './content/gallery.json'
 
 const siteBase = typeof window !== 'undefined' && window.location.pathname.startsWith('/lingluan-blog')
   ? '/lingluan-blog/'
@@ -34,23 +36,17 @@ const siteBase = typeof window !== 'undefined' && window.location.pathname.start
 const asset = (path) => `${siteBase}${path.replace(/^\/+/, '')}`
 const profile = asset('images/profile.jpg')
 
-const notes = [
-  { title: '把一台旧电脑重新装好的晚上', excerpt: '从拆机、清灰到系统重装，记录一套不依赖运气的排障流程。', category: '装机排障', date: '2026.09.28', read: '6 min', accent: 'orange' },
-  { title: '面向个人学习的 Agent 协作方法研究', excerpt: '摘要：将上下文建模、任务分解、工具验证与结果复盘组织为可重复的协作流程，并讨论它在自学场景中的边界。', category: 'Agent', date: '2026.09.16', read: '12 min', accent: 'blue' },
-]
+const { notes, agentPaper } = siteContent
 
 const projects = [
   { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue' },
 ]
 
-const gallery = [
-  { src: asset('images/gallery/valley.jpg'), title: '山谷 · 01', note: '风从山脊经过', ratio: 'portrait' },
-  { src: asset('images/gallery/lake.jpg'), title: '湖泊 · 02', note: '把视线放远一点', ratio: 'wide' },
-  { src: asset('images/gallery/mountains.jpg'), title: '群山 · 03', note: '留给以后的一次出发', ratio: 'square' },
-  { src: asset('images/gallery/forest.jpg'), title: '森林 · 04', note: '安静地走一段路', ratio: 'wide' },
-  { src: asset('images/gallery/waterfall.jpg'), title: '瀑布 · 05', note: '保持一点流动', ratio: 'portrait' },
-  { src: asset('images/gallery/coast.jpg'), title: '海岸 · 06', note: '在潮汐里放松', ratio: 'square' },
-]
+const gallery = galleryContent.map((item) => ({ ...item, src: asset(`images/gallery/${item.file}`) }))
+const guestbookIssueUrl = 'https://github.com/shisjsji/lingluan-blog/issues/1'
+const editorUrl = (path) => `https://github.com/shisjsji/lingluan-blog/edit/master/${path}`
+const galleryUploadUrl = 'https://github.com/shisjsji/lingluan-blog/upload/master/public/images/gallery'
+const gallerySubmissionUrl = 'https://github.com/shisjsji/lingluan-blog/issues/new?template=gallery-submission.yml'
 
 function AnimatedText({ children, className = '' }) {
   return <span className={`animated-text ${className}`}>{children}</span>
@@ -78,6 +74,7 @@ function App() {
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/guestbook" element={<GuestbookPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
@@ -154,6 +151,10 @@ function HomePage() {
 
     <div className="page-wrap home-contact"><ContactWidget /></div>
 
+    <section className="home-guestbook page-wrap">
+      <GuestbookWidget compact />
+    </section>
+
     <section className="home-grid page-wrap">
       <Reveal className="section-heading"><h2>最近在做什么</h2><Link to="/about" className="text-link">更多关于我 <ArrowUpRight size={15} /></Link></Reveal>
       <div className="now-grid">
@@ -187,6 +188,7 @@ function AboutPage() {
     <div className="about-layout"><aside className="sticky-aside"><span className="aside-label">PROFILE / 2008-NOW</span><div className="mini-profile"><img src={profile} alt="凌乱的风&" /><div><strong>凌乱的风&</strong><span>信息安全技术 · 大一</span></div></div><p>一个喜欢拆解问题、修电脑，并且对新工具保持好奇的人。</p></aside><div className="about-content">
       <section className="prose-block"><h2>先从一台电脑开始，<br />再走远一点。</h2><p>我出生于 2008 年，现在是一名信息安全技术专业的大一学生。比起把自己定义成“擅长什么”，我更愿意记录自己正在如何变得更好。</p><p>我会自己装机，处理那些看起来很麻烦的电脑问题；也在自学 Codex 和各类 agent，试着把它们变成可靠的思考伙伴。</p></section>
       <ContactWidget />
+      <div className="about-guestbook-link"><Link to="/guestbook" className="text-link">看看访客留言 <ArrowUpRight size={15} /></Link></div>
       <section className="skills-block"><h2>我正在积累的能力</h2><div className="skills-list"><Skill title="信息安全学习" detail="网络基础 · Linux · 继续补齐知识地图" icon={ShieldCheck} /><Skill title="装机与排障" detail="硬件组装 · 系统重装 · 疑难杂症处理" icon={TerminalSquare} /><Skill title="Codex & Agent" detail="拆解问题 · 快速验证 · 记录方法" icon={Sparkles} /></div></section>
       <section className="timeline-block"><h2>成长记录</h2><div className="timeline"><TimelineItem year="2008" title="出生" detail="开始一段很长的探索。" /><TimelineItem year="2025" title="遇见更多工具" detail="开始认真接触 Codex、agent 与更大的互联网。" /><TimelineItem year="2026" title="大一 · 信息安全技术" detail="在课堂之外，把基础知识变成自己的能力。" active /></div></section>
     </div></div>
@@ -215,9 +217,10 @@ function NotesPage() {
   const categories = ['全部', '装机排障', 'Agent']
   const filtered = useMemo(() => notes.filter((note) => (active === '全部' || note.category === active) && `${note.title}${note.excerpt}`.toLowerCase().includes(query.toLowerCase())), [active, query])
   return <div className="page-wrap inner-page"><PageIntro kicker="笔记" title={<>一些正在成形的<em>想法。</em></>} intro="不追求每天更新，只留下下一次还会想打开的东西。" />
+    <div className="content-admin-row"><span>内容保存在 GitHub，提交后自动更新网站。</span><a href={editorUrl('src/content/site-content.json')} target="_blank" rel="noreferrer">在线编辑笔记与记录 <ExternalLink size={14} /></a></div>
     <section className="notes-toolbar"><div className="filter-tabs">{categories.map((category) => <button key={category} className={active === category ? 'filter-tab active' : 'filter-tab'} onClick={() => setActive(category)}>{category}</button>)}</div><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索笔记" /></label></section>
     <section className="notes-page-list">{filtered.length ? filtered.map((note, index) => <NoteRow key={note.title} note={note} index={index} />) : <div className="empty-state"><ListFilter size={20} /><p>还没有找到这条记录。</p></div>}</section>
-    <article className="agent-paper"><h2>面向个人学习的 Agent 协作方法研究</h2><p className="agent-paper-lead">摘要：本文以个人学习中的真实问题为对象，尝试建立一套由问题建模、上下文准备、分步执行、证据核验和结果复盘组成的 Agent 协作流程。实践表明，Agent 的价值不在于替代思考，而在于降低验证成本，让学习者更快获得可检查的中间结果。</p><div className="agent-paper-grid"><div><h3>问题建模</h3><p>先明确目标、限制条件与完成标准，把“帮我做点什么”改写成可验证的问题。</p></div><div><h3>分步执行</h3><p>让 Agent 先探索再修改，每一步都保留输入、输出和依据，避免结果变成无法解释的黑箱。</p></div><div><h3>结果复盘</h3><p>通过运行结果、文档来源与失败记录交叉检查，沉淀下一次可以复用的提示与流程。</p></div></div><p className="agent-paper-conclusion"><strong>结论。</strong> 对个人学习而言，稳定的协作节奏比一次性生成完整答案更重要。Agent 应该成为可追问、可校验、可修正的实验伙伴。</p></article>
+    <article className="agent-paper"><h2>{agentPaper.title}</h2><p className="agent-paper-lead">{agentPaper.lead}</p><div className="agent-paper-grid">{agentPaper.sections.map((section, index) => <div key={section.title}><span>0{index + 1} / STUDY</span><h3>{section.title}</h3><p>{section.body}</p></div>)}</div><p className="agent-paper-conclusion"><strong>结论。</strong> {agentPaper.conclusion}</p></article>
     <div className="notes-footnote"><Command size={15} />更多笔记正在路上 <span>·</span> 最后更新于 2026.09</div>
   </div>
 }
@@ -229,12 +232,48 @@ function ProjectsPage() {
 function GalleryPage() {
   const [selected, setSelected] = useState(null)
   useEffect(() => { const onKey = (event) => { if (event.key === 'Escape') setSelected(null) }; window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey) }, [])
-  return <div className="page-wrap inner-page gallery-page"><Link to="/" className="back-link"><ArrowLeft size={16} /> 回到首页</Link><PageIntro kicker="图库" title={<>一些<em>生活切片。</em></>} intro="这是一个小小的草稿入口。以后会放更多照片、路过的风景，以及值得留住的瞬间。" /><div className="gallery-grid">{gallery.map((item, index) => <button className={`gallery-card ${item.ratio}`} key={`${item.title}-${index}`} onClick={() => setSelected(item)}><img src={item.src} alt={item.title} /><span className="gallery-card-overlay"><small>{item.title}</small><strong>{item.note}</strong><ArrowUpRight size={17} /></span></button>)}</div>{selected && <div className="lightbox" role="dialog" aria-modal="true" aria-label={selected.title} onClick={() => setSelected(null)}><button className="lightbox-close" onClick={() => setSelected(null)} aria-label="关闭"><X size={20} /></button><div className="lightbox-image" onClick={(event) => event.stopPropagation()}><img src={selected.src} alt={selected.title} /><div><span>{selected.title}</span><small>{selected.note}</small></div></div></div>}</div>
+  return <div className="page-wrap inner-page gallery-page"><Link to="/" className="back-link"><ArrowLeft size={16} /> 回到首页</Link><PageIntro kicker="图库" title={<>一些<em>生活切片。</em></>} intro="风景和日常的草稿集。访客可以提交照片与简介；审核通过后，我会把照片整理进这里。" /><div className="gallery-actions"><a className="button button-primary" href={gallerySubmissionUrl} target="_blank" rel="noreferrer">提交照片 <ArrowUpRight size={15} /></a><a className="button button-quiet" href={galleryUploadUrl} target="_blank" rel="noreferrer">上传我的照片 <ExternalLink size={14} /></a><a className="gallery-edit-link" href={editorUrl('src/content/gallery.json')} target="_blank" rel="noreferrer">编辑标题与简介 <ExternalLink size={13} /></a></div><div className="gallery-grid">{gallery.map((item, index) => <button className={`gallery-card ${item.ratio}`} key={`${item.title}-${index}`} onClick={() => setSelected(item)}><img src={item.src} alt={item.title} /><span className="gallery-card-overlay"><small>{item.title}</small><strong>{item.note}</strong><ArrowUpRight size={17} /></span></button>)}</div>{selected && <div className="lightbox" role="dialog" aria-modal="true" aria-label={selected.title} onClick={() => setSelected(null)}><button className="lightbox-close" onClick={() => setSelected(null)} aria-label="关闭"><X size={20} /></button><div className="lightbox-image" onClick={(event) => event.stopPropagation()}><img src={selected.src} alt={selected.title} /><div><span>{selected.title}</span><small>{selected.note}</small></div></div></div>}</div>
+}
+
+function GuestbookPage() {
+  return <div className="page-wrap inner-page guestbook-page"><Link to="/" className="back-link"><ArrowLeft size={16} /> 回到首页</Link><PageIntro kicker="访客留言" title={<>留下一句<em>想说的话。</em></>} intro="留言通过 GitHub 保存和展示。发布时会公开你的 GitHub 用户名与留言内容，请不要填写个人隐私。" /><GuestbookWidget /></div>
+}
+
+function GuestbookWidget({ compact = false }) {
+  const [comments, setComments] = useState([])
+  const [status, setStatus] = useState('loading')
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('https://api.github.com/repos/shisjsji/lingluan-blog/issues/1/comments?per_page=8', {
+      headers: { Accept: 'application/vnd.github+json' },
+      signal: controller.signal,
+    }).then((response) => {
+      if (!response.ok) throw new Error('留言暂时无法读取')
+      return response.json()
+    }).then((items) => {
+      setComments(items
+        .filter((item) => item.body?.trim() && item.user?.login)
+        .sort((left, right) => Date.parse(right.created_at) - Date.parse(left.created_at))
+        .slice(0, 8))
+      setStatus('ready')
+    }).catch((error) => {
+      if (error.name !== 'AbortError') setStatus('error')
+    })
+    return () => controller.abort()
+  }, [])
+  return <section className={`guestbook-widget ${compact ? 'is-compact' : ''}`}>
+    <div className="guestbook-heading"><div><span className="section-kicker">OPEN NOTES</span><h2>访客留言</h2></div><a className="button button-quiet" href={`${guestbookIssueUrl}#new_comment_field`} target="_blank" rel="noreferrer">写一句话 <ExternalLink size={14} /></a></div>
+    <p className="guestbook-disclaimer">留言公开显示 GitHub 用户名与内容，请勿填写隐私信息。</p>
+    {status === 'loading' && <div className="guestbook-state">正在读取留言…</div>}
+    {status === 'error' && <div className="guestbook-state">暂时无法读取留言。<a href={guestbookIssueUrl} target="_blank" rel="noreferrer">前往 GitHub 查看和留言 <ArrowUpRight size={14} /></a></div>}
+    {status === 'ready' && comments.length === 0 && <div className="guestbook-state">还没有留言，来写下第一句吧。</div>}
+    {status === 'ready' && comments.length > 0 && <div className="guestbook-list">{comments.map((comment) => <article className="guestbook-entry" key={comment.id}><div className="guestbook-entry-meta"><a href={`https://github.com/${encodeURIComponent(comment.user.login)}`} target="_blank" rel="noreferrer">@{comment.user.login}</a><time dateTime={comment.created_at}>{new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric' }).format(new Date(comment.created_at))}</time></div><p>{comment.body.length > 700 ? `${comment.body.slice(0, 700)}…` : comment.body}</p></article>)}</div>}
+  </section>
 }
 
 function NotFoundPage() { const navigate = useNavigate(); return <div className="not-found page-wrap"><span className="section-kicker">404 / LOST IN THE WIND</span><h1>这页还没有<br /><em>被写出来。</em></h1><p>也许它正在某个草稿里等待下一次打开。</p><button className="button button-primary" onClick={() => navigate('/')}>回到首页 <ArrowUpRight size={16} /></button></div> }
 
-function Footer() { return <footer className="footer page-wrap"><div className="footer-brand"><span className="brand-mark"><span /></span><div><strong>凌乱的风<span className="ampersand">&</span></strong><span>记录正在发生的事。</span></div></div><div className="footer-links"><a href="https://github.com/shisjsji" target="_blank" rel="noreferrer" aria-label="GitHub" className="social-mark">GH</a><a href="https://www.coolapk.com/u/30432128" target="_blank" rel="noreferrer" aria-label="酷安"><Layers3 size={17} /></a><Link to="/gallery" className="footer-gallery">图库 · 其他角落 <ArrowUpRight size={14} /></Link></div><span className="footer-copy">© 2026 · Made with curiosity</span></footer> }
+function Footer() { return <footer className="footer page-wrap"><div className="footer-brand"><span className="brand-mark"><span /></span><div><strong>凌乱的风<span className="ampersand">&</span></strong><span>记录正在发生的事。</span></div></div><div className="footer-links"><a href="https://github.com/shisjsji" target="_blank" rel="noreferrer" aria-label="GitHub" className="social-mark">GH</a><a href="https://www.coolapk.com/u/30432128" target="_blank" rel="noreferrer" aria-label="酷安"><Layers3 size={17} /></a><Link to="/gallery" className="footer-gallery">图库 <ArrowUpRight size={14} /></Link><Link to="/guestbook" className="footer-gallery">访客留言 <ArrowUpRight size={14} /></Link></div><span className="footer-copy">© 2026 · Made with curiosity</span></footer> }
 
 export default function Root() { return <HashRouter><App /></HashRouter> }
 

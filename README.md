@@ -33,6 +33,22 @@ pnpm dev
 
 ## GitHub Pages
 
-仓库建立后，设置 GitHub Actions 使用 `actions/deploy-pages` 部署 `dist`。项目已经预留 `base: './'`，可直接使用仓库路径访问。
+网站已通过 GitHub Actions 发布到 https://shisjsji.github.io/lingluan-blog/ 。推送到 `master` 后会自动重新构建。
 
-图库草稿使用 Unsplash 风景照片并已保存到 `public/images/gallery`，后续可以直接替换该目录下的图片与 `src/main.jsx` 中的图库数据。
+图库草稿使用风景照片并已保存到 `public/images/gallery`，后续可替换目录下的图片，并更新 `src/content/gallery.json`。
+## 网站内容与互动管理
+
+网站使用 GitHub Pages 托管。访客留言与图片投稿由 GitHub Issues 保存，笔记、Agent 文章和图库说明由仓库内容文件管理。
+
+## 更新网站内容
+
+- 笔记与 Agent 文章：编辑 `src/content/site-content.json`。
+- 图库标题与简介：编辑 `src/content/gallery.json`。
+- 自己上传的图片：上传到 `public/images/gallery/`，并在 `gallery.json` 中加入对应文件名、标题、简介和布局比例。
+- 在 GitHub 网页提交修改后，Actions 会自动重新构建并发布 GitHub Pages。
+
+## 访客投稿与留言
+
+- 访客从图库的“提交照片”入口创建 GitHub Issue，再在评论区附上图片。投稿需要审核，审核通过后再复制到图库目录并更新清单。
+- 留言保存在固定的 GitHub Issue 中。网站只读取公开评论，写留言会跳转到 GitHub。
+- 访客需要 GitHub 账号；GitHub 用户名和评论内容会公开显示。请不要在留言或投稿中填写隐私信息。
