@@ -1,6 +1,6 @@
 # 凌乱的风& · Personal Blog
 
-这是一个面向 GitHub Pages 的 Vite + React 个人博客设计稿，使用 `HashRouter` 保证静态托管下的多页路由可用。
+这是一个 Vite + React 个人博客，构建为静态站点后发布到自有服务器，使用 `HashRouter` 保证静态托管下的多页路由可用。
 
 ## 本地运行
 
@@ -31,21 +31,21 @@ pnpm dev
 | Miuix IconButton | https://compose-miuix-ui.github.io/miuix/zh_CN/components/iconbutton | 菜单、返回、主题切换等紧凑工具按钮 |
 | Miuix SmallTitle | https://compose-miuix-ui.github.io/miuix/zh_CN/components/smalltitle | 个人信息与时间线中的小标题层级 |
 
-## GitHub Pages
+## 部署
 
-网站已通过 GitHub Actions 发布到 https://shisjsji.github.io/lingluan-blog/ 。推送到 `master` 后会自动重新构建。
+网站构建后发布到自有服务器（nginx，站点目录 `/var/www/lingluan-blog`）。推送到 `master` 后，GitHub Actions 会自动构建并通过 rsync 同步到服务器。GitHub Pages 已停用。
 
 图库草稿使用风景照片并已保存到 `public/images/gallery`，后续可替换目录下的图片，并更新 `src/content/gallery.json`。
 ## 网站内容与互动管理
 
-网站使用 GitHub Pages 托管。访客留言与图片投稿由 GitHub Issues 保存，笔记、Agent 文章和图库说明由仓库内容文件管理。
+网站使用自有服务器托管。访客留言与图片投稿由 GitHub Issues 保存，笔记、Agent 文章和图库说明由仓库内容文件管理。
 
 ## 更新网站内容
 
 - 关于我的简介、技能、成长记录、笔记与 Agent 文章：编辑 `src/content/site-content.json`。
 - 图库标题与简介：编辑 `src/content/gallery.json`。
 - 自己上传的图片：上传到 `public/images/gallery/`，并在 `gallery.json` 中加入对应文件名、标题、简介和布局比例。
-- 在 GitHub 网页提交修改后，Actions 会自动重新构建并发布 GitHub Pages。
+- 在 GitHub 网页提交修改后，Actions 会自动重新构建并同步到服务器。
 
 ## 访客投稿与留言
 
