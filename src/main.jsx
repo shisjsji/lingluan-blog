@@ -39,7 +39,9 @@ const profile = asset('images/profile.jpg')
 const { about, notes, agentPaper } = siteContent
 
 const projects = [
-  { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue' },
+  { name: 'AURORA-pro', type: 'Magisk · KernelSU', detail: '以设备原厂 Dolby XML 为基底的双扬声器调音模块，保留耳机、蓝牙与 USB 路线的原厂节点。', state: 'v5.7.0', icon: Layers3, tone: 'orange', url: 'https://github.com/shisjsji/AURORA-pro' },
+  { name: 'ios_auto_brightness', type: 'Android 模块', detail: '把小米设备的自动亮度曲线改成更接近 iOS 的观感。', state: '已发布', icon: Sun, tone: 'green', url: 'https://github.com/shisjsji/ios_auto_brightness' },
+  { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue', url: 'https://github.com/shisjsji' },
 ]
 
 const gallery = galleryContent.map((item) => ({ ...item, src: asset(`images/gallery/${item.file}`) }))
@@ -228,7 +230,7 @@ function NotesPage() {
 }
 
 function ProjectsPage() {
-  return <div className="page-wrap inner-page"><PageIntro kicker="项目" title={<>把好奇心，<em>做成东西。</em></>} intro="一些还在生长的小项目。它们不一定完整，但都有清楚的起点。" /><section className="projects-list">{projects.map((project, index) => <a href="https://github.com/shisjsji" target="_blank" rel="noreferrer" className="project-row" key={project.name}><span className="project-number">0{index + 1}</span><div className={`project-icon ${project.tone}`}><project.icon size={21} /></div><div className="project-copy"><div className="project-title"><h2>{project.name}</h2><span>{project.type}</span></div><p>{project.detail}</p></div><span className="project-state"><span className="status-dot" />{project.state}</span><ArrowUpRight className="project-arrow" size={18} /></a>)}</section><section className="project-cta"><div><h2>有一个问题，<br /><em>想一起拆开吗？</em></h2></div><a href="https://github.com/shisjsji" target="_blank" rel="noreferrer" className="button button-primary">联系我 <ArrowUpRight size={16} /></a></section></div>
+  return <div className="page-wrap inner-page"><PageIntro kicker="项目" title={<>把好奇心，<em>做成东西。</em></>} intro="一些还在生长的小项目。它们不一定完整，但都有清楚的起点。" /><section className="projects-list">{projects.map((project, index) => <a href={project.url} target="_blank" rel="noreferrer" className="project-row" key={project.name}><span className="project-number">0{index + 1}</span><div className={`project-icon ${project.tone}`}><project.icon size={21} /></div><div className="project-copy"><div className="project-title"><h2>{project.name}</h2><span>{project.type}</span></div><p>{project.detail}</p></div><span className="project-state"><span className="status-dot" />{project.state}</span><ArrowUpRight className="project-arrow" size={18} /></a>)}</section><section className="project-cta"><div><h2>有一个问题，<br /><em>想一起拆开吗？</em></h2></div><a href="https://github.com/shisjsji" target="_blank" rel="noreferrer" className="button button-primary">联系我 <ArrowUpRight size={16} /></a></section></div>
 }
 
 function GalleryPage() {
