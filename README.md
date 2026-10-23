@@ -33,7 +33,9 @@ pnpm dev
 
 ## 部署
 
-网站构建后发布到自有服务器（nginx，站点目录 `/var/www/lingluan-blog`）。推送到 `master` 后，GitHub Actions 会自动构建并通过 rsync 同步到服务器。GitHub Pages 已停用。
+站点地址：**https://lingluandf.online/**（HTTPS 由 Let's Encrypt 签发并自动续期）。
+
+网站构建后发布到自有服务器（nginx，站点目录 `/var/www/lingluan-blog`）。推送到 `master` 后，GitHub Actions 会自动构建并通过 rsync 同步到服务器。也可以登录后台 `https://lingluandf.online/admin/` 直接编辑内容并发布。GitHub Pages 已停用。
 
 图库草稿使用风景照片并已保存到 `public/images/gallery`，后续可替换目录下的图片，并更新 `src/content/gallery.json`。
 ## 网站内容与互动管理

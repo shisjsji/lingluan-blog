@@ -16,7 +16,7 @@ ssh -p 443 -i ~/.ssh/id_ed25519_agents root@47.238.233.55
 
 - 主机：`47.238.233.55`（阿里云香港 ECS，Ubuntu 22.04，2 核 4G，系统盘 40G）
 - 用户：`root`
-- **端口是 443，不是 22**。22 端口从国内访问会被链路干扰，443 是唯一稳定通道
+- **端口是 443，不是 22**。22 端口从国内访问会被链路干扰，443 是唯一稳定通道（nginx 把非 TLS 流量转给 sshd）
 - 密钥：`~/.ssh/id_ed25519_agents`（本地文件，无口令）
 
 ### 链路不稳定时
@@ -78,5 +78,15 @@ rsync -a --delete dist/ /var/www/lingluan-blog/
 
 ## 已知待办
 
-- 域名 `lingluandf.online` 的 A 记录尚未配置到本机
-- 配置完成后需要在 443 端口对 TLS 流量和 SSH 流量做分流（SNI），届时 SSH 仍走 443
+无。域名解析、HTTPS 证书、端口分流均已完成。
+
+## 域名与端口分流
+
+- 站点域名：`lingluandf.online` 和 `www.lingluandf.online`，A 记录指向本机
+- HTTPS 证书由 Let's Encrypt 签发，certbot 定时任务自动续期
+- **443 端口由 nginx 的 stream 模块分流**：
+  - TLS 流量（ClientHello）→ `127.0.0.1:8443`（nginx 的 https server）
+  - 非 TLS 流量 → `127.0.0.1:22`（sshd）
+- 所以 SSH 和网站共用 443，不要以为 443 只归 nginx
+- 后台地址：`https://lingluandf.online/admin/`（nginx 反代到 `127.0.0.1:3001`）
+- stream 配置文件：`/etc/nginx/stream-ssh-https.conf`，由 `/etc/nginx/nginx.conf` 末尾的 include 引入
