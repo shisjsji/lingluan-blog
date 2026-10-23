@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>后台 · 凌乱的风&</title>
+<style>
+  :root{--bg:#f5f4ef;--panel:#fffdf8;--ink:#22252a;--muted:#6b7076;--accent:#c05a3c;--accent-soft:#f6e3da;--line:#e2ddd2;--ok:#3f7d54;--err:#b4453a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.6 -apple-system,'PingFang SC','Microsoft YaHei',sans-serif;padding:28px 18px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+  .card h2{font-size:15px;margin-bottom:14px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  input[type=text],input[type=password],textarea,select{width:100%;border:1px solid var(--line);border-radius:7px;padding:8px 10px;font:inherit;background:#fff}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+  button{border:0;border-radius:7px;padding:9px 16px;font:inherit;cursor:pointer;background:var(--accent);color:#fff}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  button.danger{background:transparent;color:var(--err);border:1px solid var(--err)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .tabs button{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .item{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:#fff}
+  .item-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+  .item-head strong{font-size:13px}
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .msg{font-size:12px;padding:8px 12px;border-radius:7px;margin-top:10px;display:none}
+  .msg.ok{display:block;background:#e8f2ea;color:var(--ok)}
+  .msg.err{display:block;background:#f7e7e5;color:var(--err)}
+  .login{max-width:340px;margin:12vh auto}
+  .status{font-size:12px;color:var(--muted)}
+  .thumb{width:56px;height:42px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="loginView" class="login card hide">
+    <h1>后台登录</h1>
+    <p class="sub">凌乱的风& 的博客管理</p>
+    <label>密码</label>
+    <input type="password" id="pwd" autocomplete="current-password">
+    <div class="bar"><button id="loginBtn">登录</button></div>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <div id="appView" class="hide">
+    <h1>博客后台</h1>
+    <p class="sub">改完内容先点「保存草稿」，确认无误再点「发布上线」。</p>
+
+    <div class="tabs">
+      <button data-tab="notes" class="on">笔记</button>
+      <button data-tab="about">关于我</button>
+      <button data-tab="gallery">图库</button>
+      <button data-tab="paper">Agent 文章</button>
+    </div>
+
+    <div id="tab-notes" class="tab">
+      <div class="card">
+        <h2>笔记列表</h2>
+        <div id="notesList"></div>
+        <div class="bar"><button class="ghost" id="addNote">+ 新增笔记</button></div>
+      </div>
+    </div>
+
+    <div id="tab-about" class="tab hide">
+      <div class="card">
+        <h2>关于我</h2>
+        <label>一句话简介</label><input type="text" id="aboutSummary">
+        <label>主标题</label><input type="text" id="aboutHeading">
+        <label>正文段落（每行一段）</label><textarea id="aboutParagraphs" rows="6"></textarea>
+        <label>技能（JSON 数组）</label><textarea id="aboutSkills" rows="6"></textarea>
+        <label>成长记录（JSON 数组）</label><textarea id="aboutTimeline" rows="6"></textarea>
+      </div>
+    </div>
+
+    <div id="tab-gallery" class="tab hide">
+      <div class="card">
+        <h2>图库</h2>
+        <div id="galleryList"></div>
+        <div class="bar">
+          <button class="ghost" id="uploadBtn">上传图片</button>
+          <input type="file" id="fileInput" accept="image/*" class="hide">
+          <span class="status" id="uploadStatus"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-paper" class="tab hide">
+      <div class="card">
+        <h2>Agent 文章</h2>
+        <label>标题</label><input type="text" id="paperTitle">
+        <label>摘要</label><textarea id="paperLead" rows="4"></textarea>
+        <label>章节（JSON 数组）</label><textarea id="paperSections" rows="8"></textarea>
+        <label>结论</label><textarea id="paperConclusion" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bar">
+        <button id="saveBtn">保存草稿</button>
+        <button class="ghost" id="publishBtn">发布上线</button>
+        <button class="danger" id="logoutBtn">退出</button>
+      </div>
+      <div class="status" id="publishStatus"></div>
+      <div class="msg" id="appMsg"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+let site = null, gallery = null;
+
+async function api(path, opts = {}) {
+  const res = await fetch('/admin/api' + path, Object.assign({
+    headers: { 'Content-Type': 'application/json' },
+  }, opts));
+  return res;
+}
+
+function show(el, cls, text) {
+  el.className = 'msg ' + cls;
+  el.textContent = text;
+  setTimeout(() => { el.className = 'msg'; }, 4000);
+}
+
+async function boot() {
+  const res = await api('/me');
+  if (res.ok) { $('loginView').classList.add('hide'); $('appView').classList.remove('hide'); await load(); }
+  else { $('appView').classList.add('hide'); $('loginView').classList.remove('hide'); }
+}
+
+$('loginBtn').onclick = async () => {
+  const res = await api('/login', { method: 'POST', body: JSON.stringify({ password: $('pwd').value }) });
+  const data = await res.json();
+  if (data.ok) { $('pwd').value = ''; boot(); }
+  else show($('loginMsg'), 'err', data.error || '登录失败');
+};
+
+async function load() {
+  const res = await api('/content');
+  const data = await res.json();
+  site = data.site; gallery = data.gallery;
+  renderNotes(); renderAbout(); renderGallery(); renderPaper();
+}
+
+function renderNotes() {
+  const box = $('notesList'); box.innerHTML = '';
+  site.notes.forEach((note, i) => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="item-head"><strong>${i + 1}. ${escapeHtml(note.title)}</strong>
+        <button class="danger" data-del="${i}">删除</button></div>
+      <label>标题</label><input type="text" data-f="title" value="${escapeAttr(note.title)}">
+      <label>摘要</label><textarea data-f="excerpt">${escapeHtml(note.excerpt)}</textarea>
+      <div class="row3">
+        <div><label>分类</label><input type="text" data-f="category" value="${escapeAttr(note.category)}"></div>
+        <div><label>日期</label><input type="text" data-f="date" value="${escapeAttr(note.date)}"></div>
+        <div><label>阅读时长</label><input type="text" data-f="read" value="${escapeAttr(note.read)}"></div>
+      </div>`;
+    div.querySelectorAll('[data-f]').forEach((input) => {
+      input.addEventListener('input', () => { note[input.dataset.f] = input.value; });
+    });
+    div.querySelector('[data-del]').onclick = () => { site.notes.splice(i, 1); renderNotes(); };
+    box.appendChild(div);
+  });
+}
+
+$('addNote').onclick = () => {
+  site.notes.unshift({ title: '新笔记', excerpt: '', category: '装机排障', date: new Date().toISOString().slice(0, 10).replace(/-/g, '.'), read: '5 min', accent: 'orange' });
+  renderNotes();
+};
+
+function renderAbout() {
+  $('aboutSummary').value = site.about.summary || '';
+  $('aboutHeading').value = site.about.heading || '';
+  $('aboutParagraphs').value = (site.about.paragraphs || []).join('\n');
+  $('aboutSkills').value = JSON.stringify(site.about.skills || [], null, 2);
+  $('aboutTimeline').value = JSON.stringify(site.about.timeline || [], null, 2);
+}
+
+function renderPaper() {
+  $('paperTitle').value = site.agentPaper.title || '';
+  $('paperLead').value = site.agentPaper.lead || '';
+  $('paperSections').value = JSON.stringify(site.agentPaper.sections || [], null, 2);
+  $('paperConclusion').value = site.agentPaper.conclusion || '';
+}
+
+function renderGallery() {
+  const box = $('galleryList'); box.innerHTML = '';
+  gallery.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="item-head">
+        <span style="display:flex;gap:10px;align-items:center">
+          <img class="thumb" src="/images/gallery/${escapeAttr(item.file)}" alt="">
+          <strong>${escapeHtml(item.title)}</strong>
+        </span>
+        <button class="danger" data-del="${i}">删除</button></div>
+      <div class="row3">
+        <div><label>文件名</label><input type="text" data-f="file" value="${escapeAttr(item.file)}"></div>
+        <div><label>标题</label><input type="text" data-f="title" value="${escapeAttr(item.title)}"></div>
+        <div><label>比例</label><select data-f="ratio">
+          <option ${item.ratio === 'portrait' ? 'selected' : ''}>portrait</option>
+          <option ${item.ratio === 'wide' ? 'selected' : ''}>wide</option>
+          <option ${item.ratio === 'square' ? 'selected' : ''}>square</option>
+        </select></div>
+      </div>
+      <label>简介</label><input type="text" data-f="note" value="${escapeAttr(item.note)}">`;
+    div.querySelectorAll('[data-f]').forEach((input) => {
+      input.addEventListener('input', () => { item[input.dataset.f] = input.value; });
+      input.addEventListener('change', () => { item[input.dataset.f] = input.value; });
+    });
+    div.querySelector('[data-del]').onclick = () => { gallery.splice(i, 1); renderGallery(); };
+    box.appendChild(div);
+  });
+}
+
+$('uploadBtn').onclick = () => $('fileInput').click();
+$('fileInput').onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  $('uploadStatus').textContent = '上传中…';
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const base64 = String(reader.result).split(',')[1];
+    const res = await api('/upload', { method: 'POST', body: JSON.stringify({ name: file.name, data: base64 }) });
+    const data = await res.json();
+    $('uploadStatus').textContent = '';
+    if (data.ok) {
+      gallery.push({ file: data.file, title: data.file.replace(/\.[a-z]+$/i, ''), note: '', ratio: 'square' });
+      renderGallery();
+      show($('appMsg'), 'ok', '图片已上传，记得保存并发布');
+    } else show($('appMsg'), 'err', data.error || '上传失败');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+};
+
+function collectForms() {
+  site.about.summary = $('aboutSummary').value;
+  site.about.heading = $('aboutHeading').value;
+  site.about.paragraphs = $('aboutParagraphs').value.split('\n').filter((s) => s.trim());
+  site.about.skills = JSON.parse($('aboutSkills').value || '[]');
+  site.about.timeline = JSON.parse($('aboutTimeline').value || '[]');
+  site.agentPaper.title = $('paperTitle').value;
+  site.agentPaper.lead = $('paperLead').value;
+  site.agentPaper.sections = JSON.parse($('paperSections').value || '[]');
+  site.agentPaper.conclusion = $('paperConclusion').value;
+}
+
+$('saveBtn').onclick = async () => {
+  try { collectForms(); } catch (err) { show($('appMsg'), 'err', 'JSON 格式错误：' + err.message); return; }
+  const res = await api('/content', { method: 'POST', body: JSON.stringify({ site, gallery }) });
+  const data = await res.json();
+  show($('appMsg'), data.ok ? 'ok' : 'err', data.ok ? '草稿已保存（尚未上线）' : (data.error || '保存失败'));
+};
+
+$('publishBtn').onclick = async () => {
+  $('publishBtn').disabled = true;
+  $('publishStatus').textContent = '正在构建并发布…';
+  await api('/publish', { method: 'POST' });
+  const timer = setInterval(async () => {
+    const res = await api('/publish/status');
+    const data = await res.json();
+    if (!data.running) {
+      clearInterval(timer);
+      $('publishBtn').disabled = false;
+      $('publishStatus').textContent = '';
+      show($('appMsg'), data.last && data.last.ok ? 'ok' : 'err',
+        data.last && data.last.ok ? '发布成功，网站已更新' : '发布失败：' + (data.last ? data.last.output.slice(-300) : '未知'));
+    }
+  }, 2000);
+};
+
+$('logoutBtn').onclick = async () => { await api('/logout', { method: 'POST' }); location.reload(); };
+
+document.querySelectorAll('.tabs button').forEach((btn) => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tabs button').forEach((b) => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.querySelectorAll('.tab').forEach((t) => t.classList.add('hide'));
+    $('tab-' + btn.dataset.tab).classList.remove('hide');
+  };
+});
+
+function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+
+boot();
+</script>
+</body>
+</html>
