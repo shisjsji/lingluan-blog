@@ -1,0 +1,427 @@
+/* ==========================================================================
+   视觉规范层
+   在 styles.css 之后加载，统一间距/字号阶梯，修复布局缺陷。
+   原则：不改结构，只收敛尺度和留白；所有数值落在 4/8 网格上。
+   ========================================================================== */
+
+:root {
+  /* 间距阶梯 */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 88px;
+
+  /* 字号阶梯（正文 14px 起，辅助信息不低于 11px） */
+  --fs-2xs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 14px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --fs-3xl: clamp(30px, 3.2vw, 40px);
+  --fs-4xl: clamp(38px, 4.4vw, 58px);
+
+  /* 辅助文字加深到 WCAG AA 以上（原 #66747b 对比度 4.36 不达标） */
+  --muted: #5a686f;
+  --line-strong: #c9d3d7;
+}
+
+:root[data-theme='dark'] {
+  --muted: #a9b5ba;
+  --line-strong: #42505a;
+}
+
+/* ---------- 标题：加字号上限，避免宽屏折行 ---------- */
+
+.hero h1 {
+  font-size: var(--fs-4xl);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.inner-page .page-intro h1 {
+  font-size: var(--fs-3xl);
+  line-height: 1.14;
+  margin-bottom: var(--sp-4);
+  text-wrap: balance;
+}
+
+.inner-page .page-intro p {
+  font-size: var(--fs-base);
+  line-height: 1.75;
+  max-width: 560px;
+}
+
+.section-heading h2,
+.home-grid h2,
+.notes-preview h2 {
+  font-size: var(--fs-2xl);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* ---------- 留白：收敛到规范区间 ---------- */
+
+.inner-page {
+  padding-top: var(--sp-8);
+  padding-bottom: var(--sp-9);
+}
+
+.page-intro {
+  max-width: 760px;
+  margin-bottom: var(--sp-7);
+}
+
+.home-grid {
+  padding-top: var(--sp-8);
+}
+
+.gallery-entry {
+  padding-top: var(--sp-7);
+  padding-bottom: var(--sp-7);
+}
+
+.gallery-entry-inner {
+  padding: var(--sp-6) var(--sp-6);
+}
+
+.section-heading {
+  margin-bottom: var(--sp-5);
+}
+
+.stats-strip {
+  min-height: 88px;
+}
+
+.hero {
+  padding-top: var(--sp-9);
+  padding-bottom: var(--sp-8);
+  gap: var(--sp-8);
+}
+
+.hero-intro {
+  margin-top: var(--sp-5);
+  font-size: var(--fs-md);
+  line-height: 1.8;
+}
+
+.hero-actions {
+  margin-top: var(--sp-5);
+}
+
+/* ---------- 列表行：压缩行高，提高信息密度 ---------- */
+
+.note-row {
+  min-height: 88px;
+  gap: var(--sp-4);
+}
+
+.note-row:hover {
+  padding-inline: var(--sp-3);
+}
+
+.project-row {
+  min-height: 112px;
+  gap: var(--sp-4);
+}
+
+.project-row:hover {
+  padding-inline: var(--sp-3);
+}
+
+.now-row {
+  min-height: 72px;
+}
+
+/* ---------- 修复：now-feature 内容被推到两端，中间空出大片 ---------- */
+
+.now-feature {
+  min-height: 0;
+  justify-content: center;
+  padding: var(--sp-6);
+}
+
+.now-feature .feature-icon {
+  margin-bottom: var(--sp-4);
+}
+
+.now-feature h3 {
+  font-size: var(--fs-xl);
+  max-width: 100%;
+  line-height: 1.35;
+}
+
+.now-feature p:not(.card-label) {
+  max-width: 100%;
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+}
+
+.feature-arrow {
+  bottom: var(--sp-5);
+  right: var(--sp-5);
+}
+
+/* ---------- 辅助文字：最小 11px，避免不可读的小字 ---------- */
+
+.note-detail small,
+.note-detail span,
+.project-title span,
+.contact-label,
+.footer-copy,
+.aside-label,
+.section-kicker,
+.eyebrow,
+.mono {
+  font-size: var(--fs-2xs);
+  line-height: 1.5;
+}
+
+.contact-label {
+  letter-spacing: 0.04em;
+}
+
+.contact-value {
+  font-size: var(--fs-xs);
+}
+
+.contact-wechat .contact-value {
+  white-space: normal;
+  line-height: 1.6;
+}
+
+/* 项目类型标签：从 9px 提到 11px，去掉过宽字距，读得清才谈得上精致 */
+.project-title span {
+  letter-spacing: 0.02em;
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.project-copy p {
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  margin-top: var(--sp-2);
+}
+
+.project-title h2 {
+  font-size: var(--fs-lg);
+}
+
+/* ---------- 统计条与页脚对齐 ---------- */
+
+.stat strong {
+  font-size: var(--fs-xl);
+}
+
+.stat span {
+  font-size: var(--fs-2xs);
+}
+
+.stats-note {
+  font-size: var(--fs-2xs);
+}
+
+.footer {
+  min-height: 128px;
+  gap: var(--sp-7);
+}
+
+/* ---------- 按钮与焦点态 ---------- */
+
+.button {
+  min-height: 40px;
+  padding: 0 var(--sp-4);
+  font-size: var(--fs-sm);
+}
+
+.button:focus-visible,
+.icon-button:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- 卡片圆角统一，避免大小混杂 ---------- */
+
+.contact-item,
+.icon-button,
+.filter-tab,
+.button,
+.search-field {
+  border-radius: 8px;
+}
+
+/* ---------- 移动端 ---------- */
+
+@media (max-width: 800px) {
+  .inner-page {
+    padding-top: var(--sp-7);
+    padding-bottom: var(--sp-8);
+  }
+
+  .page-intro {
+    margin-bottom: var(--sp-6);
+  }
+
+  .inner-page .page-intro h1 {
+    font-size: clamp(26px, 7.4vw, 34px);
+  }
+
+  .hero h1 {
+    font-size: clamp(30px, 8.6vw, 44px);
+  }
+
+  .home-grid {
+    padding-top: var(--sp-7);
+  }
+
+  .now-feature {
+    padding: var(--sp-5);
+  }
+
+  .now-feature h3 {
+    font-size: var(--fs-lg);
+  }
+
+  .project-row {
+    min-height: 104px;
+  }
+
+  .project-title span {
+    font-size: 10px;
+  }
+
+  .footer {
+    gap: var(--sp-4);
+  }
+}
+
+/* ---------- 尊重系统的减弱动效设置 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* ---------- 布局宽度：减少宽屏两侧空白 ---------- */
+
+.page-wrap,
+.topbar-inner {
+  width: min(1200px, calc(100% - 48px));
+}
+
+.about-layout {
+  grid-template-columns: 240px 1fr;
+  gap: var(--sp-8);
+}
+
+/* 原样式用了 margin-top:-42px，会把「看看访客留言」压到联系方式卡片上 */
+.about-guestbook-link {
+  margin-top: var(--sp-4);
+  margin-bottom: var(--sp-6);
+}
+
+.prose-block h2 {
+  font-size: var(--fs-2xl);
+  line-height: 1.3;
+  margin-bottom: var(--sp-4);
+}
+
+.prose-block p {
+  line-height: 1.85;
+  margin-bottom: var(--sp-3);
+}
+
+.skills-block > h2,
+.timeline-block > h2 {
+  font-size: var(--fs-xl);
+  margin-bottom: var(--sp-4);
+}
+
+/* ---------- 论文区块：标题原 max-width:650px 会导致孤字折行 ---------- */
+
+.agent-paper {
+  margin-top: var(--sp-7);
+  padding-top: var(--sp-5);
+}
+
+.agent-paper h2 {
+  font-size: clamp(24px, 2.4vw, 32px);
+  max-width: 100%;
+  line-height: 1.3;
+  margin-bottom: var(--sp-4);
+  text-wrap: balance;
+}
+
+.agent-paper-lead,
+.agent-paper-conclusion {
+  font-size: var(--fs-sm);
+  line-height: 1.85;
+}
+
+.agent-paper-grid {
+  margin: var(--sp-5) 0;
+  gap: var(--sp-3);
+}
+
+.agent-paper-grid span {
+  font-size: var(--fs-2xs);
+}
+
+.agent-paper-grid h3 {
+  font-size: var(--fs-base);
+  margin: var(--sp-2) 0;
+}
+
+.agent-paper-grid p {
+  font-size: var(--fs-xs);
+  line-height: 1.7;
+}
+
+/* ---------- 笔记标题与摘要的层级对比 ---------- */
+
+.note-main h3 {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.note-main p {
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  margin-top: var(--sp-1);
+}
+
+/* ---------- 管理提示行：缩短与上方标题的距离 ---------- */
+
+.content-admin-row {
+  margin-top: calc(var(--sp-7) * -0.5);
+  margin-bottom: var(--sp-4);
+  font-size: var(--fs-xs);
+}
+
+.content-admin-row.about-admin-row {
+  margin-top: 0;
+}
+
+/* 笔记标题比摘要大一级，层级更清楚 */
+.note-main h3 {
+  font-size: var(--fs-md);
+}
