@@ -40,8 +40,9 @@ const profile = asset('images/profile.jpg')
 const { about, notes, agentPaper } = siteContent
 
 const projects = [
-  { name: 'chaoxing-ai', type: 'Python · 桌面客户端', detail: '超星学习通桌面客户端：自动刷课、AI 答题、本地与共享题库，支持自动更新。', state: '已上线', icon: BookOpen, tone: 'blue', url: 'https://chaoxingxxt.lingluandf.online/' },
+  { name: 'chaoxing-ai', type: 'Python · Windows 桌面端', detail: '超星学习通桌面客户端：自动播放、AI 答题、考试作答（Beta）与共享题库，开源免费。', state: '已上线', icon: BookOpen, tone: 'blue', url: 'https://chaoxingxxt.lingluandf.online/' },
   { name: 'AURORA-pro', type: 'Magisk · KernelSU', detail: '以设备原厂 Dolby XML 为基底的双扬声器调音模块，保留耳机、蓝牙与 USB 路线的原厂节点。', state: 'v5.7.0', icon: Layers3, tone: 'orange', url: 'https://github.com/shisjsji/AURORA-pro' },
+  { name: 'LumaCurve', type: 'Android 模块 · 二次开发', detail: '自适应亮屏与 AOD 状态调度（HyperLux 版本），在 LumaCurve 基础上做的二次开发。', state: 'v2.3.2', icon: Moon, tone: 'blue', url: 'https://github.com/shisjsji/LumaCurve' },
   { name: 'ios_auto_brightness', type: 'Android 模块', detail: '把小米设备的自动亮度曲线改成更接近 iOS 的观感。', state: '已发布', icon: Sun, tone: 'green', url: 'https://github.com/shisjsji/ios_auto_brightness' },
   { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue', url: 'https://github.com/shisjsji' },
 ]

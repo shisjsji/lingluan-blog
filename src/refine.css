@@ -425,3 +425,22 @@ input:focus-visible {
 .note-main h3 {
   font-size: var(--fs-md);
 }
+
+/* ---------- 头像：纯色应用图标配不规则圆形会显得没对齐 ---------- */
+
+.hero-portrait,
+.hero-portrait img {
+  border-radius: 50%;
+}
+
+/* 原样式是旋转 8deg 的不规则描边，配照片像设计，配图标像错位 */
+.portrait-outline {
+  inset: -10px;
+  border-radius: 50%;
+  transform: none;
+  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.mini-profile img {
+  border-radius: 50%;
+}
