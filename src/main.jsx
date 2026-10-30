@@ -35,7 +35,7 @@ const siteBase = typeof window !== 'undefined' && window.location.pathname.start
   ? '/lingluan-blog/'
   : import.meta.env.BASE_URL
 const asset = (path) => `${siteBase}${path.replace(/^\/+/, '')}`
-const profile = asset('images/avatar-app.jpg')
+const profile = asset('images/avatar.jpg')
 
 const { about, notes, agentPaper } = siteContent
 
