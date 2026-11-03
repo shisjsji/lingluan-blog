@@ -109,7 +109,7 @@ export class NeuronScene {
     this.uniforms = { uTime: { value: 0 }, uFocus: { value: new THREE.Vector3(0, 0, 0) }, uHover: { value: new THREE.Vector2(-1, -1) } };
 
     this.raycaster = new THREE.Raycaster();
-    this.raycaster.params.Points.threshold = 1.2;
+    this.raycaster.params.Points.threshold = 2.4;
 
     this._buildStardust();
   }
@@ -179,6 +179,69 @@ export class NeuronScene {
     this.stardust = new THREE.Points(geom, mat);
     this.stardust.frustumCulled = false;
     this.scene.add(this.stardust);
+
+    this._buildNebula();
+    this._buildCore();
+  }
+
+  // 用 canvas 生成径向渐变贴图，避免引入外部资源
+  _makeGlowTexture(inner, mid) {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    g.addColorStop(0, inner);
+    g.addColorStop(0.4, mid);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  // 星云层：几团大而淡的辉光，给星系体积感
+  _buildNebula() {
+    this.nebula = new THREE.Group();
+    const layers = [
+      { inner: 'rgba(126,98,214,0.5)', mid: 'rgba(74,52,150,0.16)', size: 165, pos: [0, 0, 0], op: 0.5 },
+      { inner: 'rgba(84,126,200,0.42)', mid: 'rgba(40,74,138,0.13)', size: 120, pos: [34, -8, -26], op: 0.42 },
+      { inner: 'rgba(206,124,152,0.32)', mid: 'rgba(146,62,94,0.11)', size: 96, pos: [-42, 14, 22], op: 0.36 },
+    ];
+    this.nebulaSprites = [];
+    for (const layer of layers) {
+      const mat = new THREE.SpriteMaterial({
+        map: this._makeGlowTexture(layer.inner, layer.mid),
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        opacity: layer.op,
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(layer.size, layer.size, 1);
+      sprite.position.set(...layer.pos);
+      sprite.userData.baseOpacity = layer.op;
+      this.nebula.add(sprite);
+      this.nebulaSprites.push(sprite);
+    }
+    this.group.add(this.nebula);
+  }
+
+  // 星系核：中心那一点最亮的地方
+  _buildCore() {
+    const mat = new THREE.SpriteMaterial({
+      map: this._makeGlowTexture('rgba(255,255,255,0.95)', 'rgba(214,198,255,0.42)'),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 0.85,
+    });
+    const core = new THREE.Sprite(mat);
+    core.scale.set(22, 22, 1);
+    this.group.add(core);
+    this.core = core;
   }
 
   _initEvents() {
@@ -259,10 +322,14 @@ export class NeuronScene {
 
   _applyColors() {
     const theme = this.dark ? DARK : LIGHT;
-    if (this.nodeMesh) {
-      const colors = this.nodes.map((n) => this._nodeColor(n, theme));
-      for (let i = 0; i < this.nodes.length; i += 1) this.nodeMesh.setColorAt(i, colors[i]);
-      this.nodeMesh.instanceColor.needsUpdate = true;
+    if (this.nodeMesh && this._nodeColors) {
+      this.nodes.forEach((node, i) => {
+        const c = this._nodeColor(node, theme);
+        this._nodeColors[i * 3] = c.r;
+        this._nodeColors[i * 3 + 1] = c.g;
+        this._nodeColors[i * 3 + 2] = c.b;
+      });
+      this.nodeMesh.geometry.getAttribute('aColor').needsUpdate = true;
     }
     if (this.lineMesh) {
       this.lineMesh.material.color.copy(theme.edge);
@@ -281,6 +348,14 @@ export class NeuronScene {
       const u = this.stardust.material.uniforms;
       u.uColor.value.copy(this.dark ? new THREE.Color('#8fb8d4') : new THREE.Color('#7d8b93'));
       u.uOpacity.value = this.dark ? 0.55 : 0.16;
+    }
+    if (this.nebulaSprites) {
+      for (const sprite of this.nebulaSprites) {
+        sprite.material.opacity = this.dark ? sprite.userData.baseOpacity : sprite.userData.baseOpacity * 0.1;
+      }
+    }
+    if (this.core) {
+      this.core.material.opacity = this.dark ? 0.85 : 0.2;
     }
   }
 
@@ -308,21 +383,23 @@ export class NeuronScene {
     const span = Math.max(1, maxT - minT);
     for (const node of this.nodes) {
       const t = (Date.parse(node.createdAt) - minT) / span;
-      const vol = Math.cbrt(unitHash(node.uid, 'r'));
-      const r = 5 + vol * 22 + t * 12;
 
-      // 方向由 uid 均匀铺开（同一项目内标签高度重复，若按标签聚类会全叠在一起）
+      // 体积分布：内密外疏，像星系核与外围
+      const vol = Math.cbrt(unitHash(node.uid, 'r'));
+      const r = 4 + vol * 20 + t * 14;
+
       const u = unitHash(node.uid, 'u');
       const v = unitHash(node.uid, 'v');
-      const theta = u * Math.PI * 2;
       const phi = Math.acos(2 * v - 1);
 
-      // 同标签做一点点靠拢，保留簇感但不重叠
-      const tagBias = unitHash((node.tags && node.tags[0]) || 'misc', 'b') * 0.35;
-      const th = theta + (tagBias - 0.175) * 0.6;
-      const sinPhi = Math.sin(phi);
+      // 两条旋臂：时间越新角度偏移越大，形成螺旋
+      const arm = Math.floor(unitHash(node.uid, 'arm') * 2) * Math.PI;
+      const tagBias = unitHash((node.tags && node.tags[0]) || 'misc', 'b') * 0.5;
+      const th = u * 0.6 + arm + t * 2.3 + tagBias;
 
-      node.pos = [r * sinPhi * Math.cos(th), r * Math.cos(phi) * 0.82, r * sinPhi * Math.sin(th)];
+      const sinPhi = Math.sin(phi);
+      // 压扁成盘状，更像银河
+      node.pos = [r * sinPhi * Math.cos(th), r * Math.cos(phi) * 0.34, r * sinPhi * Math.sin(th)];
     }
 
     this.timeSpan = { min: minT, max: maxT };
@@ -339,49 +416,84 @@ export class NeuronScene {
       this.group.remove(this.nodeMesh);
       this.nodeMesh.geometry.dispose();
       this.nodeMesh.material.dispose();
+      this.nodeMesh = null;
     }
     const count = this.nodes.length;
     if (!count) return;
 
-    const geom = new THREE.SphereGeometry(1, 14, 12);
-    const mat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.98 });
-    // 呼吸：在顶点着色器里按 instance 相位缩放，JS 不做逐节点计算
-    mat.onBeforeCompile = (shader) => {
-      shader.uniforms.uTime = this.uniforms.uTime;
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nattribute float aPhase;\nuniform float uTime;')
-        .replace(
-          '#include <begin_vertex>',
-          '#include <begin_vertex>\nfloat breathe = 1.0 + 0.16 * sin(uTime * 1.1 + aPhase);\ntransformed *= breathe;'
-        );
-    };
-
+    const positions = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
     const phases = new Float32Array(count);
-    for (let i = 0; i < count; i += 1) phases[i] = hashPhase(this.nodes[i].uid);
-    geom.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1));
-
-    const mesh = new THREE.InstancedMesh(geom, mat, count);
-    mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
-
-    const matrix = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const scale = new THREE.Vector3();
-    const pos = new THREE.Vector3();
+    const visible = new Float32Array(count).fill(1);
+    const colors = new Float32Array(count * 3);
 
     this.nodes.forEach((node, i) => {
-      pos.set(node.pos[0], node.pos[1], node.pos[2]);
-      const size = 0.24 + node.weight * 0.24;
-      scale.setScalar(size);
-      matrix.compose(pos, quat, scale);
-      mesh.setMatrixAt(i, matrix);
-      node._worldPos = pos.clone();
+      positions[i * 3] = node.pos[0];
+      positions[i * 3 + 1] = node.pos[1];
+      positions[i * 3 + 2] = node.pos[2];
+      sizes[i] = 5.2 + node.weight * 4.4;
+      phases[i] = hashPhase(node.uid);
+      node._visible = 1;
     });
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.frustumCulled = false;
-    mesh.userData.uidToIndex = new Map(this.nodes.map((n, i) => [n.uid, i]));
 
-    this.group.add(mesh);
-    this.nodeMesh = mesh;
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geom.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+    geom.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+    geom.setAttribute('aVisible', new THREE.BufferAttribute(visible, 1));
+    geom.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
+
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: this.uniforms.uTime,
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+        uHoverIndex: { value: -1 },
+      },
+      vertexShader: `
+        attribute float aSize;
+        attribute float aPhase;
+        attribute float aVisible;
+        attribute vec3 aColor;
+        uniform float uTime;
+        uniform float uPixelRatio;
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          float pulse = 0.86 + 0.14 * sin(uTime * 1.15 + aPhase);
+          gl_Position = projectionMatrix * mv;
+          // 世界尺度换算到像素，深度越远越小
+          gl_PointSize = aSize * uPixelRatio * pulse * aVisible * (46.0 / max(1.0, -mv.z));
+          vColor = aColor;
+          vAlpha = aVisible * (0.55 + 0.45 * pulse);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          vec2 c = gl_PointCoord - 0.5;
+          float d = length(c);
+          if (d > 0.5) discard;
+          float core = smoothstep(0.16, 0.0, d);
+          float halo = smoothstep(0.5, 0.04, d);
+          float a = (core * 1.0 + halo * 0.42) * vAlpha;
+          vec3 col = vColor + core * 0.6;
+          gl_FragColor = vec4(col, a);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const points = new THREE.Points(geom, mat);
+    points.frustumCulled = false;
+    points.userData.uidToIndex = new Map(this.nodes.map((n, i) => [n.uid, i]));
+    this.group.add(points);
+    this.nodeMesh = points;
+    this._nodeColors = colors;
+    this._nodeVisible = visible;
   }
 
   _buildEdges() {
@@ -505,22 +617,13 @@ export class NeuronScene {
   // 时间轴回放：只显示该时间点之前诞生的神经元
   setTimeFilter(timestamp) {
     this.visibleUntil = timestamp;
-    if (!this.nodeMesh) return;
-    const matrix = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const scale = new THREE.Vector3();
-    const pos = new THREE.Vector3();
-
+    if (!this.nodeMesh || !this._nodeVisible) return;
     this.nodes.forEach((node, i) => {
-      const born = Date.parse(node.createdAt);
-      const visible = born <= timestamp;
-      pos.set(node.pos[0], node.pos[1], node.pos[2]);
-      const size = visible ? 0.24 + node.weight * 0.24 : 0.0001;
-      scale.setScalar(size);
-      matrix.compose(pos, quat, scale);
-      this.nodeMesh.setMatrixAt(i, matrix);
+      const visible = Date.parse(node.createdAt) <= timestamp ? 1 : 0;
+      node._visible = visible;
+      this._nodeVisible[i] = visible;
     });
-    this.nodeMesh.instanceMatrix.needsUpdate = true;
+    this.nodeMesh.geometry.getAttribute('aVisible').needsUpdate = true;
   }
 
   focusOn(uid) {
