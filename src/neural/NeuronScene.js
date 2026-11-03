@@ -169,6 +169,8 @@ export class NeuronScene {
     const theme = dark ? DARK : LIGHT;
     this.scene.background = new THREE.Color(theme.bg);
     this.scene.fog = new THREE.FogExp2(theme.bg, theme.fog);
+    // 浅色背景的亮度高于 bloom 阈值，开着泛光会把整片底衬糊成白色
+    this.bloom.enabled = dark;
     this.bloom.strength = theme.bloom;
     this.bloom.radius = theme.bloomRadius;
     this.bloom.threshold = theme.bloomThreshold;
