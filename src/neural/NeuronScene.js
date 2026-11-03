@@ -13,9 +13,9 @@ const DARK = {
   nodeCool: new THREE.Color('#9fd0e4'),
   edge: new THREE.Color('#3f4e5a'),
   edgeWarm: new THREE.Color('#a85a40'),
-  bloom: 1.35,
+  bloom: 0.85,
   bloomRadius: 0.8,
-  bloomThreshold: 0.08,
+  bloomThreshold: 0.22,
   fog: 0.0075,
 };
 
@@ -266,7 +266,7 @@ export class NeuronScene {
     }
     if (this.lineMesh) {
       this.lineMesh.material.color.copy(theme.edge);
-      this.lineMesh.material.opacity = this.dark ? 0.68 : 0.62;
+      this.lineMesh.material.opacity = this.dark ? 0.4 : 0.5;
     }
     if (this.warmLineMesh) {
       this.warmLineMesh.material.color.copy(theme.edgeWarm);
@@ -308,7 +308,8 @@ export class NeuronScene {
     const span = Math.max(1, maxT - minT);
     for (const node of this.nodes) {
       const t = (Date.parse(node.createdAt) - minT) / span;
-      const r = 9 + t * 25;
+      const shell = (unitHash(node.uid, 'r') - 0.5) * 9;
+      const r = 10 + t * 22 + shell;
 
       // 方向由 uid 均匀铺开（同一项目内标签高度重复，若按标签聚类会全叠在一起）
       const u = unitHash(node.uid, 'u');
@@ -369,7 +370,7 @@ export class NeuronScene {
 
     this.nodes.forEach((node, i) => {
       pos.set(node.pos[0], node.pos[1], node.pos[2]);
-      const size = 0.42 + node.weight * 0.46;
+      const size = 0.3 + node.weight * 0.32;
       scale.setScalar(size);
       matrix.compose(pos, quat, scale);
       mesh.setMatrixAt(i, matrix);
@@ -405,7 +406,7 @@ export class NeuronScene {
 
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const mat = new THREE.LineBasicMaterial({ color: this.dark ? DARK.edge : LIGHT.edge, transparent: true, opacity: this.dark ? 0.68 : 0.62 });
+    const mat = new THREE.LineBasicMaterial({ color: this.dark ? DARK.edge : LIGHT.edge, transparent: true, opacity: this.dark ? 0.4 : 0.5 });
     const lines = new THREE.LineSegments(geom, mat);
     lines.frustumCulled = false;
     this.group.add(lines);
@@ -514,7 +515,7 @@ export class NeuronScene {
       const born = Date.parse(node.createdAt);
       const visible = born <= timestamp;
       pos.set(node.pos[0], node.pos[1], node.pos[2]);
-      const size = visible ? 0.42 + node.weight * 0.46 : 0.0001;
+      const size = visible ? 0.3 + node.weight * 0.32 : 0.0001;
       scale.setScalar(size);
       matrix.compose(pos, quat, scale);
       this.nodeMesh.setMatrixAt(i, matrix);
