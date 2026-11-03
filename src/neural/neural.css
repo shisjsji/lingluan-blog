@@ -772,3 +772,87 @@
     animation: none;
   }
 }
+/* ---------- 分类与项目切换 ---------- */
+
+.neural-scope {
+  flex: none;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--n-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+  z-index: 3;
+}
+
+.neural-scope::-webkit-scrollbar {
+  display: none;
+}
+
+.neural-cat,
+.neural-proj {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--n-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.neural-cat:hover,
+.neural-proj:hover {
+  color: var(--n-text);
+  background: var(--n-panel);
+}
+
+.neural-cat {
+  font-weight: 500;
+  font-size: 12.5px;
+}
+
+.neural-cat.is-on {
+  color: var(--n-warm);
+  border-color: color-mix(in srgb, var(--n-warm) 40%, transparent);
+  background: color-mix(in srgb, var(--n-warm) 8%, transparent);
+}
+
+.neural-proj.is-on {
+  color: var(--n-strong);
+  border-color: var(--n-line-strong);
+  background: var(--n-panel);
+}
+
+.neural-cat i,
+.neural-proj i {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--n-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.neural-cat.is-on i {
+  color: var(--n-warm);
+}
+
+.neural-scope-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--n-line-strong);
+  margin: 0 4px;
+  flex: none;
+}
+
+@media (max-width: 980px) {
+  .neural-scope {
+    padding: 0 14px;
+    height: 40px;
+  }
+}

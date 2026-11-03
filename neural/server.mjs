@@ -27,6 +27,8 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     uid TEXT UNIQUE NOT NULL,
     session_id TEXT,
+    category TEXT NOT NULL DEFAULT '编程',
+    project TEXT NOT NULL DEFAULT '',
     title TEXT NOT NULL,
     summary TEXT DEFAULT '',
     tags TEXT NOT NULL DEFAULT '[]',
@@ -39,6 +41,8 @@ db.exec(`
     created_at TEXT NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_neurons_created ON neurons(created_at);
+  CREATE INDEX IF NOT EXISTS idx_neurons_project ON neurons(project);
+  CREATE INDEX IF NOT EXISTS idx_neurons_category ON neurons(category);
 
   CREATE TABLE IF NOT EXISTS synapses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,8 +58,8 @@ db.exec(`
 `);
 
 const insertNeuron = db.prepare(`
-  INSERT INTO neurons (uid, session_id, title, summary, tags, kind, weight, heat, x, y, z, created_at)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO neurons (uid, session_id, category, project, title, summary, tags, kind, weight, heat, x, y, z, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 const insertSynapse = db.prepare(`
   INSERT OR IGNORE INTO synapses (source, target, kind, weight, created_at) VALUES (?, ?, ?, ?, ?)
@@ -133,6 +137,8 @@ function rowToNode(row) {
   return {
     uid: row.uid,
     sessionId: row.session_id,
+    category: row.category,
+    project: row.project,
     title: row.title,
     summary: row.summary,
     tags: JSON.parse(row.tags || '[]'),
@@ -198,6 +204,8 @@ function recordNeuron(input) {
   const tags = normalizeTags(input.tags);
   const summary = String(input.summary || '').trim().slice(0, 400);
   const sessionId = input.sessionId ? String(input.sessionId).slice(0, 64) : null;
+  const category = ['编程', '论文', '杂项'].includes(input.category) ? input.category : '编程';
+  const project = String(input.project || '').trim().slice(0, 24);
   const kind = ['dialog', 'tool', 'note', 'insight'].includes(input.kind) ? input.kind : 'dialog';
   const weight = Math.min(3, Math.max(0.3, Number(input.weight) || 1));
   const createdAt = input.createdAt ? new Date(input.createdAt).toISOString() : new Date().toISOString();
@@ -205,7 +213,7 @@ function recordNeuron(input) {
   const uid = newUid();
   const pos = layoutFor(uid, tags, createdAt);
   const prev = sessionId ? selectSessionLast.get(sessionId) : null;
-  insertNeuron.run(uid, sessionId, title, summary, JSON.stringify(tags), kind, weight, 1, pos.x, pos.y, pos.z, createdAt);
+  insertNeuron.run(uid, sessionId, category, project, title, summary, JSON.stringify(tags), kind, weight, 1, pos.x, pos.y, pos.z, createdAt);
 
   const node = rowToNode(selectByUid.get(uid));
   const edges = weaveSynapses(node, tags, prev);
@@ -294,9 +302,42 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (p === '/graph' && req.method === 'GET') {
-      const nodes = selectAll.all().map(rowToNode);
-      const edges = selectSynapses.all().map((e) => ({ source: e.source, target: e.target, kind: e.kind, weight: e.weight }));
-      sendJSON(res, 200, { nodes, edges });
+      const project = url.searchParams.get('project');
+      const category = url.searchParams.get('category');
+      const limit = Math.min(600, Number(url.searchParams.get('limit')) || 0);
+
+      let rows;
+      if (project) rows = db.prepare('SELECT * FROM neurons WHERE project = ? ORDER BY created_at ASC').all(project);
+      else if (category) rows = db.prepare('SELECT * FROM neurons WHERE category = ? ORDER BY created_at ASC').all(category);
+      else rows = selectAll.all();
+
+      // 默认给每个视图封顶，避免一次渲染过多节点把页面压垮
+      if (limit && rows.length > limit) rows = rows.slice(-limit);
+
+      const nodes = rows.map(rowToNode);
+      const keep = new Set(nodes.map((n) => n.uid));
+      const edges = selectSynapses
+        .all()
+        .filter((e) => keep.has(e.source) && keep.has(e.target))
+        .map((e) => ({ source: e.source, target: e.target, kind: e.kind, weight: e.weight }));
+
+      sendJSON(res, 200, { nodes, edges, total: rows.length });
+      return;
+    }
+
+    if (p === '/scope' && req.method === 'GET') {
+      // 两级归属：大类 → 项目
+      const rows = db.prepare('SELECT category, project, COUNT(*) AS n FROM neurons GROUP BY category, project').all();
+      const map = new Map();
+      for (const r of rows) {
+        const cat = r.category || '编程';
+        if (!map.has(cat)) map.set(cat, { category: cat, total: 0, projects: [] });
+        const entry = map.get(cat);
+        entry.total += r.n;
+        if (r.project) entry.projects.push({ name: r.project, count: r.n });
+      }
+      for (const entry of map.values()) entry.projects.sort((a, b) => b.count - a.count);
+      sendJSON(res, 200, { categories: [...map.values()] });
       return;
     }
 

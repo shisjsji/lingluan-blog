@@ -23,8 +23,11 @@ export default function NeuralPage() {
 
   const [graph, setGraph] = useState({ nodes: [], edges: [] });
   const [stats, setStats] = useState(null);
+  const [scope, setScope] = useState(null);
+  const [view, setView] = useState({ category: '编程', project: '学习通' });
   const [hovered, setHovered] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [selectedUid, setSelectedUid] = useState(null);
+  const selected = useMemo(() => graph.nodes.find((n) => n.uid === selectedUid) || null, [graph.nodes, selectedUid]);
   const [status, setStatus] = useState('loading');
   const [dark, setDark] = useState(() => (document.documentElement.dataset.theme || 'light') === 'dark');
 
@@ -53,19 +56,17 @@ export default function NeuralPage() {
     return () => observer.disconnect();
   }, []);
 
-  // 拉数据
+  // 先取分类与项目，再按当前视图拉图
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const [g, s] = await Promise.all([
-          fetch(`${API}/graph`).then((r) => r.json()),
-          fetch(`${API}/stats`).then((r) => r.json()),
-        ]);
+        const sc = await fetch(`${API}/scope`).then((r) => r.json());
         if (!alive) return;
-        setGraph(g);
-        setStats(s);
-        setTimeValue(1);
+        setScope(sc);
+        const first = sc.categories?.[0];
+        const proj = first?.projects?.[0]?.name || '';
+        setView((v) => (v.project || v.category ? v : { category: first?.category || '编程', project: proj }));
         setStatus('ready');
       } catch {
         if (alive) setStatus('error');
@@ -76,16 +77,44 @@ export default function NeuralPage() {
     };
   }, []);
 
-  // 初始化场景
+  // 视图切换时重新拉取，一次只渲染一个项目
+  useEffect(() => {
+    if (status !== 'ready') return undefined;
+    let alive = true;
+    (async () => {
+      try {
+        const params = new URLSearchParams();
+        if (view.project) params.set('project', view.project);
+        else if (view.category) params.set('category', view.category);
+        params.set('limit', '600');
+        const [g, s] = await Promise.all([
+          fetch(`${API}/graph?${params}`).then((r) => r.json()),
+          fetch(`${API}/stats`).then((r) => r.json()),
+        ]);
+        if (!alive) return;
+        setGraph(g);
+        setStats(s);
+        setTimeValue(1);
+        setSelectedUid(null);
+      } catch {
+        if (alive) setStatus('error');
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [view, status]);
+
+  // 初始化场景（只在就绪时建一次）
   useEffect(() => {
     if (status !== 'ready' || !canvasRef.current) return undefined;
     const scene = new NeuronScene(canvasRef.current, {
       onHover: (node) => setHovered(node),
-      onSelect: (uid) => setSelected(uid ? graph.nodes.find((n) => n.uid === uid) || null : null),
+      onSelect: (uid) => setSelectedUid(uid),
     });
     sceneRef.current = scene;
     scene.setTheme(dark);
-    scene.setData(graph.nodes, graph.edges);
+    if (graph.nodes.length) scene.setData(graph.nodes, graph.edges);
 
     const ro = new ResizeObserver(() => scene.resize());
     if (wrapRef.current) ro.observe(wrapRef.current);
@@ -96,7 +125,12 @@ export default function NeuralPage() {
       sceneRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, graph]);
+  }, [status]);
+
+  // 数据变化只更新网络，不重建场景
+  useEffect(() => {
+    sceneRef.current?.setData(graph.nodes, graph.edges);
+  }, [graph]);
 
   useEffect(() => {
     sceneRef.current?.setTheme(dark);
@@ -198,6 +232,30 @@ export default function NeuralPage() {
         </div>
       </header>
 
+      <div className="neural-scope">
+        {scope?.categories?.map((cat) => (
+          <button
+            key={cat.category}
+            className={`neural-cat ${view.category === cat.category ? 'is-on' : ''}`}
+            onClick={() => setView({ category: cat.category, project: cat.projects?.[0]?.name || '' })}
+          >
+            {cat.category}
+            <i>{cat.total}</i>
+          </button>
+        ))}
+        <span className="neural-scope-sep" />
+        {(scope?.categories?.find((c) => c.category === view.category)?.projects || []).map((p) => (
+          <button
+            key={p.name}
+            className={`neural-proj ${view.project === p.name ? 'is-on' : ''}`}
+            onClick={() => setView({ category: view.category, project: p.name })}
+          >
+            {p.name}
+            <i>{p.count}</i>
+          </button>
+        ))}
+      </div>
+
       <div className="neural-body">
         <aside className="neural-panel neural-stats">
           <div className="neural-stat">
@@ -247,7 +305,7 @@ export default function NeuralPage() {
           )}
           {selected && (
             <div className="neural-detail">
-              <button className="neural-detail-close" onClick={() => setSelected(null)} aria-label="关闭">
+              <button className="neural-detail-close" onClick={() => setSelectedUid(null)} aria-label="关闭">
                 <X size={15} />
               </button>
               <span className="neural-detail-date">{formatDateTime(selected.createdAt)}</span>

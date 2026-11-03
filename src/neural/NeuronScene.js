@@ -99,6 +99,75 @@ export class NeuronScene {
 
     this.raycaster = new THREE.Raycaster();
     this.raycaster.params.Points.threshold = 1.2;
+
+    this._buildStardust();
+  }
+
+  // 远景星尘：让背景不再是空的
+  _buildStardust() {
+    const COUNT = 1100;
+    const positions = new Float32Array(COUNT * 3);
+    const sizes = new Float32Array(COUNT);
+    const phases = new Float32Array(COUNT);
+
+    for (let i = 0; i < COUNT; i += 1) {
+      const r = 58 + Math.random() * 96;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const sp = Math.sin(phi);
+      positions[i * 3] = r * sp * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.cos(phi) * 0.8;
+      positions[i * 3 + 2] = r * sp * Math.sin(theta);
+      sizes[i] = 0.5 + Math.random() * 1.8;
+      phases[i] = Math.random() * Math.PI * 2;
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geom.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+    geom.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: this.uniforms.uTime,
+        uColor: { value: new THREE.Color('#8fb8d4') },
+        uOpacity: { value: 0.55 },
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      },
+      vertexShader: `
+        attribute float aSize;
+        attribute float aPhase;
+        uniform float uTime;
+        uniform float uPixelRatio;
+        varying float vTwinkle;
+        void main() {
+          float twinkle = 0.45 + 0.55 * sin(uTime * 0.8 + aPhase);
+          vTwinkle = twinkle;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mv;
+          gl_PointSize = aSize * uPixelRatio * (180.0 / -mv.z) * (0.7 + twinkle * 0.6);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform float uOpacity;
+        varying float vTwinkle;
+        void main() {
+          vec2 c = gl_PointCoord - 0.5;
+          float d = length(c);
+          if (d > 0.5) discard;
+          float a = smoothstep(0.5, 0.0, d) * vTwinkle * uOpacity;
+          gl_FragColor = vec4(uColor, a);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+
+    this.stardust = new THREE.Points(geom, mat);
+    this.stardust.frustumCulled = false;
+    this.scene.add(this.stardust);
   }
 
   _initEvents() {
@@ -192,6 +261,16 @@ export class NeuronScene {
       this.warmLineMesh.material.color.copy(theme.edgeWarm);
       this.warmLineMesh.material.opacity = this.dark ? 0.6 : 0.5;
     }
+    if (this.sparkMesh) {
+      const u = this.sparkMesh.material.uniforms;
+      u.uColor.value.copy(this.dark ? theme.nodeCool : theme.nodeWarm);
+      u.uOpacity.value = this.dark ? 0.9 : 0.34;
+    }
+    if (this.stardust) {
+      const u = this.stardust.material.uniforms;
+      u.uColor.value.copy(this.dark ? new THREE.Color('#8fb8d4') : new THREE.Color('#7d8b93'));
+      u.uOpacity.value = this.dark ? 0.55 : 0.16;
+    }
   }
 
   _nodeColor(node, theme) {
@@ -210,9 +289,25 @@ export class NeuronScene {
       const days = (now - Date.parse(node.createdAt)) / 86400000;
       node.heatRatio = Math.exp(-Math.max(0, days) / 50);
     }
+
+    // 半径按数据自身的时间跨度归一化，否则跨度小时会挤成一团
+    const times = this.nodes.map((n) => Date.parse(n.createdAt));
+    const minT = Math.min(...times);
+    const maxT = Math.max(...times);
+    const span = Math.max(1, maxT - minT);
+    for (const node of this.nodes) {
+      const t = (Date.parse(node.createdAt) - minT) / span;
+      const r = 8 + t * 26;
+      const [x, y, z] = node.pos;
+      const len = Math.hypot(x, y, z) || 1;
+      node.pos = [(x / len) * r, (y / len) * r, (z / len) * r];
+    }
+
+    this.timeSpan = { min: minT, max: maxT };
     this.edges = edges;
     this._buildNodes();
     this._buildEdges();
+    this._buildSparks();
     this._applyColors();
     this.setTimeFilter(this.visibleUntil);
   }
@@ -295,6 +390,94 @@ export class NeuronScene {
     this.group.add(lines);
     this.lineMesh = lines;
     this.warmLineMesh = null;
+  }
+
+  // 突触流光：光点沿连线移动，位置全在着色器里算，不占 CPU
+  _buildSparks() {
+    if (this.sparkMesh) {
+      this.group.remove(this.sparkMesh);
+      this.sparkMesh.geometry.dispose();
+      this.sparkMesh.material.dispose();
+      this.sparkMesh = null;
+    }
+
+    const byUid = new Map(this.nodes.map((n) => [n.uid, n]));
+    const pairs = [];
+    for (const edge of this.edges) {
+      const a = byUid.get(edge.source);
+      const b = byUid.get(edge.target);
+      if (a && b) pairs.push([a, b]);
+    }
+    if (!pairs.length) return;
+
+    const count = Math.min(360, Math.max(48, pairs.length));
+    const start = new Float32Array(count * 3);
+    const end = new Float32Array(count * 3);
+    const phase = new Float32Array(count);
+    const speed = new Float32Array(count);
+
+    for (let i = 0; i < count; i += 1) {
+      const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
+      start.set(a.pos, i * 3);
+      end.set(b.pos, i * 3);
+      phase[i] = Math.random();
+      speed[i] = 0.07 + Math.random() * 0.2;
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(start.slice(), 3));
+    geom.setAttribute('aStart', new THREE.BufferAttribute(start, 3));
+    geom.setAttribute('aEnd', new THREE.BufferAttribute(end, 3));
+    geom.setAttribute('aPhase', new THREE.BufferAttribute(phase, 1));
+    geom.setAttribute('aSpeed', new THREE.BufferAttribute(speed, 1));
+
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: this.uniforms.uTime,
+        uColor: { value: new THREE.Color('#9fd0e4') },
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+        uSize: { value: 2.8 },
+        uOpacity: { value: 0.9 },
+      },
+      vertexShader: `
+        attribute vec3 aStart;
+        attribute vec3 aEnd;
+        attribute float aPhase;
+        attribute float aSpeed;
+        uniform float uTime;
+        uniform float uPixelRatio;
+        uniform float uSize;
+        varying float vAlpha;
+        void main() {
+          float t = fract(uTime * aSpeed + aPhase);
+          vec3 p = mix(aStart, aEnd, t);
+          vAlpha = sin(t * 3.14159265);
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_Position = projectionMatrix * mv;
+          gl_PointSize = uSize * uPixelRatio * (240.0 / -mv.z);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform float uOpacity;
+        varying float vAlpha;
+        void main() {
+          vec2 c = gl_PointCoord - 0.5;
+          float d = length(c);
+          if (d > 0.5) discard;
+          float a = smoothstep(0.5, 0.0, d) * vAlpha * uOpacity;
+          gl_FragColor = vec4(uColor, a);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const sparks = new THREE.Points(geom, mat);
+    sparks.frustumCulled = false;
+    this.group.add(sparks);
+    this.sparkMesh = sparks;
   }
 
   // 时间轴回放：只显示该时间点之前诞生的神经元
@@ -383,6 +566,10 @@ export class NeuronScene {
     this.nodeMesh?.material.dispose();
     this.lineMesh?.geometry.dispose();
     this.lineMesh?.material.dispose();
+    this.sparkMesh?.geometry.dispose();
+    this.sparkMesh?.material.dispose();
+    this.stardust?.geometry.dispose();
+    this.stardust?.material.dispose();
     this.composer?.dispose?.();
     this.renderer?.dispose?.();
   }
