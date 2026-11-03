@@ -1,0 +1,7 @@
+{
+  "name": "neural-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "智能体神经元存储与查询服务"
+}

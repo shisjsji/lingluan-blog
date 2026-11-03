@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowUpRight,
   BookOpen,
+  Brain,
   BriefcaseBusiness,
   Check,
   ChevronRight,
@@ -48,6 +49,14 @@ const projects = [
 ]
 
 const gallery = galleryContent.map((item) => ({ ...item, src: asset(`images/gallery/${item.file}`) }))
+
+const NeuralPage = lazy(() => import('./neural/NeuralPage'))
+
+// 神经元页是全屏控制台，不叠页脚
+function SiteFooter() {
+  const { pathname } = useLocation()
+  return pathname === '/neural' ? null : <Footer />
+}
 const guestbookIssueUrl = 'https://github.com/shisjsji/lingluan-blog/issues/1'
 const editorUrl = (path) => `https://github.com/shisjsji/lingluan-blog/edit/master/${path}`
 const galleryUploadUrl = 'https://github.com/shisjsji/lingluan-blog/upload/master/public/images/gallery'
@@ -78,12 +87,20 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route
+            path="/neural"
+            element={
+              <Suspense fallback={<div className="neural-fallback">正在接入神经网络…</div>}>
+                <NeuralPage />
+              </Suspense>
+            }
+          />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/guestbook" element={<GuestbookPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   )
 }
@@ -103,6 +120,7 @@ function Header({ dark, setDark }) {
     { to: '/about', label: '关于我', icon: CircleDot },
     { to: '/notes', label: '笔记', icon: BookOpen },
     { to: '/projects', label: '项目', icon: BriefcaseBusiness },
+    { to: '/neural', label: '神经元', icon: Brain },
   ]
   return (
     <header className="topbar">

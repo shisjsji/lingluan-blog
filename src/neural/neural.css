@@ -1,0 +1,774 @@
+/* ==========================================================================
+   神经元控制台
+   深色与浅色两套独立变量，各自成立，不是一套反色
+   ========================================================================== */
+
+.neural-page {
+  --n-panel-w: 216px;
+  --n-stream-w: 258px;
+  --n-radius: 10px;
+  height: calc(100vh - 78px);
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* ---------- 深色：黑底 + 发光神经元 ---------- */
+.neural-page.is-dark {
+  --n-bg: #07090d;
+  --n-bg-soft: #0c1015;
+  --n-panel: rgba(255, 255, 255, 0.035);
+  --n-panel-hover: rgba(255, 255, 255, 0.06);
+  --n-line: rgba(255, 255, 255, 0.08);
+  --n-line-strong: rgba(255, 255, 255, 0.16);
+  --n-text: #e6edf2;
+  --n-strong: #ffffff;
+  --n-muted: #8b96a3;
+  --n-warm: #f08a68;
+  --n-cool: #7fb3c8;
+  --n-shadow: 0 18px 46px rgba(0, 0, 0, 0.55);
+  background: var(--n-bg);
+  color: var(--n-text);
+}
+
+/* ---------- 浅色：与博客同源的暖灰 + 墨色细线 ---------- */
+.neural-page.is-light {
+  --n-bg: #f2f5f6;
+  --n-bg-soft: #e9eff1;
+  --n-panel: rgba(255, 255, 255, 0.72);
+  --n-panel-hover: #ffffff;
+  --n-line: #d8e0e3;
+  --n-line-strong: #b9c6cb;
+  --n-text: #2b333a;
+  --n-strong: #111a1f;
+  --n-muted: #63727a;
+  --n-warm: #b54b35;
+  --n-cool: #5d7f8c;
+  --n-shadow: 0 12px 30px rgba(30, 44, 50, 0.1);
+  background: var(--n-bg);
+  color: var(--n-text);
+}
+
+/* ---------- 顶栏 ---------- */
+
+.neural-head {
+  height: 58px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--n-line);
+  z-index: 3;
+}
+
+.neural-head-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.neural-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--n-muted);
+  font-size: 12.5px;
+  transition: color 0.18s ease;
+}
+
+.neural-back:hover {
+  color: var(--n-warm);
+}
+
+.neural-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.neural-title h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--n-strong);
+  margin: 0;
+}
+
+.neural-sub {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--n-muted);
+  font-family: 'SFMono-Regular', ui-monospace, monospace;
+}
+
+.neural-head-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.neural-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--n-muted);
+}
+
+.neural-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--n-muted);
+}
+
+.neural-live.is-on i {
+  background: #4ea36f;
+  box-shadow: 0 0 0 0 rgba(78, 163, 111, 0.6);
+  animation: neural-pulse 2.2s ease-out infinite;
+}
+
+.is-dark .neural-live.is-on i {
+  background: #6fdc98;
+}
+
+@keyframes neural-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(78, 163, 111, 0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(78, 163, 111, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(78, 163, 111, 0); }
+}
+
+.neural-ghost {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--n-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--n-muted);
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.neural-ghost:hover {
+  color: var(--n-warm);
+  border-color: var(--n-warm);
+}
+
+/* ---------- 主体三栏 ---------- */
+
+.neural-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--n-panel-w) 1fr var(--n-stream-w);
+  gap: 0;
+}
+
+.neural-panel {
+  padding: 18px 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.neural-stats {
+  border-right: 1px solid var(--n-line);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.neural-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.neural-stat-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--n-muted);
+  text-transform: uppercase;
+}
+
+.neural-stat strong {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--n-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.neural-stat strong.is-warm {
+  color: var(--n-warm);
+}
+
+.neural-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--n-line);
+}
+
+.neural-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.neural-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--n-panel);
+  border: 1px solid var(--n-line);
+  color: var(--n-text);
+}
+
+.neural-tag i {
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--n-muted);
+}
+
+/* ---------- 舞台 ---------- */
+
+.neural-stage {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.neural-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.neural-canvas:active {
+  cursor: grabbing;
+}
+
+.neural-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--n-muted);
+  pointer-events: none;
+}
+
+.neural-hint.is-error {
+  color: var(--n-warm);
+}
+
+/* 悬停卡片 */
+.neural-tooltip {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 244px;
+  padding: 12px 14px;
+  border-radius: var(--n-radius);
+  background: var(--n-bg-soft);
+  border: 1px solid var(--n-line-strong);
+  box-shadow: var(--n-shadow);
+  pointer-events: none;
+  animation: neural-fade 0.18s ease;
+  z-index: 4;
+}
+
+.is-dark .neural-tooltip {
+  background: rgba(14, 19, 25, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.is-light .neural-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+}
+
+@keyframes neural-fade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.neural-tooltip-date {
+  font-size: 10.5px;
+  color: var(--n-muted);
+  font-family: ui-monospace, monospace;
+}
+
+.neural-tooltip strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--n-strong);
+}
+
+.neural-tooltip p {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--n-muted);
+}
+
+.neural-tooltip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 9px;
+}
+
+.neural-tooltip-tags span,
+.neural-detail-tags span {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid var(--n-line);
+  color: var(--n-muted);
+}
+
+/* 选中详情 */
+.neural-detail {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: 288px;
+  padding: 16px 18px;
+  border-radius: var(--n-radius);
+  background: var(--n-bg-soft);
+  border: 1px solid var(--n-line-strong);
+  box-shadow: var(--n-shadow);
+  animation: neural-rise 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 4;
+}
+
+.is-dark .neural-detail {
+  background: rgba(14, 19, 25, 0.94);
+  backdrop-filter: blur(14px);
+}
+
+.is-light .neural-detail {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+}
+
+@keyframes neural-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.neural-detail-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--n-muted);
+  cursor: pointer;
+}
+
+.neural-detail-close:hover {
+  color: var(--n-warm);
+  background: var(--n-panel-hover);
+}
+
+.neural-detail-date {
+  font-size: 10.5px;
+  color: var(--n-muted);
+  font-family: ui-monospace, monospace;
+}
+
+.neural-detail h2 {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--n-strong);
+}
+
+.neural-detail p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--n-muted);
+}
+
+.neural-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.neural-detail-meta {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--n-line);
+}
+
+.neural-detail-meta dt {
+  font-size: 10px;
+  color: var(--n-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.neural-detail-meta dd {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: var(--n-text);
+}
+
+.neural-focus {
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  border-radius: 7px;
+  border: 1px solid var(--n-line-strong);
+  background: transparent;
+  color: var(--n-text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.neural-focus:hover {
+  border-color: var(--n-warm);
+  color: var(--n-warm);
+}
+
+/* ---------- 右侧活动流 ---------- */
+
+.neural-stream {
+  border-left: 1px solid var(--n-line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.neural-stream-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--n-muted);
+}
+
+.neural-stream-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.neural-stream-list li {
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.neural-stream-list li:hover {
+  background: var(--n-panel);
+  border-color: var(--n-line);
+}
+
+.neural-stream-date {
+  font-size: 10px;
+  color: var(--n-muted);
+  font-family: ui-monospace, monospace;
+}
+
+.neural-stream-list strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--n-text);
+}
+
+.neural-stream-tags {
+  display: flex;
+  gap: 4px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+
+.neural-stream-tags span {
+  font-size: 9.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--n-panel);
+  color: var(--n-muted);
+  border: 1px solid var(--n-line);
+}
+
+.neural-stream-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--n-line);
+  font-size: 10.5px;
+  color: var(--n-muted);
+}
+
+/* ---------- 底部时间轴 ---------- */
+
+.neural-timeline {
+  flex: none;
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--n-line);
+}
+
+.neural-timeline-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.neural-timeline-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--n-muted);
+}
+
+.neural-timeline-count {
+  font-size: 11.5px;
+  color: var(--n-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.neural-play {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--n-line-strong);
+  background: transparent;
+  color: var(--n-text);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.neural-play:hover {
+  border-color: var(--n-warm);
+  color: var(--n-warm);
+}
+
+/* 轨道 */
+.neural-track {
+  position: relative;
+  height: 42px;
+}
+
+.neural-track-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  height: 1px;
+  background: var(--n-line-strong);
+}
+
+.neural-track-fill {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  height: 1px;
+  background: var(--n-warm);
+  transition: width 0.08s linear;
+}
+
+.neural-mark {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.neural-mark i {
+  width: 1px;
+  height: 6px;
+  background: var(--n-line-strong);
+  display: block;
+  margin-top: 6px;
+}
+
+.neural-mark em {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--n-muted);
+  font-family: ui-monospace, monospace;
+  white-space: nowrap;
+}
+
+/* 秒针：竖线指示当前时刻 */
+.neural-needle {
+  position: absolute;
+  top: -6px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--n-warm);
+  pointer-events: none;
+  transform: translateX(-50%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--n-warm) 55%, transparent);
+}
+
+.neural-needle b {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--n-warm);
+  transform: translateX(-50%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--n-warm) 70%, transparent);
+}
+
+.neural-needle span {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--n-warm);
+  white-space: nowrap;
+  font-family: ui-monospace, monospace;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.neural-track:hover .neural-needle span,
+.neural-track[data-playing='true'] .neural-needle span {
+  opacity: 1;
+}
+
+.neural-range {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  appearance: none;
+  background: transparent;
+}
+
+.neural-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 1180px) {
+  .neural-page {
+    --n-panel-w: 180px;
+    --n-stream-w: 220px;
+  }
+}
+
+@media (max-width: 980px) {
+  .neural-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .neural-stats {
+    flex-direction: row;
+    align-items: center;
+    gap: 22px;
+    border-right: 0;
+    border-bottom: 1px solid var(--n-line);
+    padding: 12px 16px;
+    overflow-x: auto;
+  }
+
+  .neural-stats .neural-tags {
+    border-top: 0;
+    padding-top: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .neural-stat strong {
+    font-size: 18px;
+  }
+
+  .neural-stream {
+    display: none;
+  }
+
+  .neural-page {
+    height: auto;
+    min-height: calc(100vh - 68px);
+    overflow: visible;
+  }
+
+  .neural-stage {
+    height: 58vh;
+    min-height: 320px;
+  }
+
+  .neural-detail {
+    width: calc(100% - 36px);
+  }
+
+  .neural-tooltip {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neural-live.is-on i {
+    animation: none;
+  }
+}

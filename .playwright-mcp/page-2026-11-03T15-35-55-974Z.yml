@@ -1,0 +1,583 @@
+- generic [active] [ref=f3e1]:
+  - banner [ref=f3e2]:
+    - generic [ref=f3e3]:
+      - generic "国内版" [ref=f3e4]
+      - generic "国际版" [ref=f3e5] [cursor=pointer]
+    - generic [ref=f3e6]:
+      - link [ref=f3e7] [cursor=pointer]:
+        - /url: /?FORM=Z9FD1
+        - heading "返回到必应搜索" [level=1] [ref=f3e8]
+      - search [ref=f3e9]:
+        - button "搜索" [ref=f3e12] [cursor=pointer]
+        - searchbox "在此处输入你的搜索 — 输入时会显示搜索建议" [ref=f3e13]: neural network visualization dark minimal
+    - complementary "帐户奖励和偏好设置" [ref=f3e17]:
+      - button "Microsoft Rewards" [ref=f3e18] [cursor=pointer]
+      - link [ref=f3e19] [cursor=pointer]:
+        - /url: javascript:void(0)
+        - button "登录" [ref=f3e22]
+      - button "设置和快速链接" [ref=f3e23] [cursor=pointer]
+    - navigation "主菜单" [ref=f3e24]:
+      - list [ref=f3e25]:
+        - listitem [ref=f3e26]:
+          - link "网页" [ref=f3e27] [cursor=pointer]:
+            - /url: /search?q=neural+network+visualization+dark+minimal&FORM=HDRSC1
+        - listitem [ref=f3e28]:
+          - link "图片" [ref=f3e29] [cursor=pointer]:
+            - /url: /images?FORM=HDRSC2
+        - listitem [ref=f3e30]:
+          - list [ref=f3e31]:
+            - listitem [ref=f3e32]:
+              - link "集合" [ref=f3e33] [cursor=pointer]:
+                - /url: /saves?FORM=IRPCOL
+        - listitem [ref=f3e37]:
+          - link "视频" [ref=f3e38] [cursor=pointer]:
+            - /url: /videos/search?q=neural+network+visualization+dark+minimal&FORM=HDRSC3
+        - listitem [ref=f3e39]:
+          - link "学术" [ref=f3e40] [cursor=pointer]:
+            - /url: /academic/search?q=neural+network+visualization+dark+minimal&FORM=HDRSC4
+        - listitem [ref=f3e41]:
+          - link "词典" [ref=f3e42] [cursor=pointer]:
+            - /url: /dict/search?q=neural+network+visualization+dark+minimal&FORM=HDRSC6
+        - listitem [ref=f3e43]:
+          - link "地图" [ref=f3e44] [cursor=pointer]:
+            - /url: /maps?q=neural+network+visualization+dark+minimal&FORM=HDRSC7
+        - listitem [ref=f3e45]:
+          - link "航班" [ref=f3e46] [cursor=pointer]:
+            - /url: /travel/search?q=neural+network+visualization+dark+minimal&m=flights&FORM=FBSCOP
+      - generic [ref=f3e47]:
+        - generic:
+          - list
+        - button "筛选器" [ref=f3e49] [cursor=pointer]
+  - main [ref=f3e52]:
+    - navigation [ref=f3e53]
+    - generic [ref=f3e59]:
+      - list [ref=f3e60]:
+        - listitem [ref=f3e61]:
+          - generic [ref=f3e62]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e64] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=SAFFSC8I&id=48D247B591306FE436784934FC03D505A78FF6D4&thid=OIP.SAFFSC8IffnUTiLcZR6DLQHaEK&mediaurl=https%3a%2f%2fpic.vjshi.com%2f2024-06-29%2fd28cf414551047ce94ffada080154524%2fonline%2fpuzzle.jpg%3fx-oss-process%3dstyle%2fw1440_h2880&exph=810&expw=1440&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=17EA708CD06E849ECBA0CB44AE46025C&selectedIndex=0&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e66]
+            - generic [ref=f3e67]:
+              - link "暗屏替代背景:人工智能神经网络接口的三维可视化，显示动态数据流和连接。机器学习和人工智能视觉概念_视频素材下载_编号:30120673_光厂 ..." [ref=f3e68] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=SAFFSC8I&id=48D247B591306FE436784934FC03D505A78FF6D4&thid=OIP.SAFFSC8IffnUTiLcZR6DLQHaEK&mediaurl=https%3a%2f%2fpic.vjshi.com%2f2024-06-29%2fd28cf414551047ce94ffada080154524%2fonline%2fpuzzle.jpg%3fx-oss-process%3dstyle%2fw1440_h2880&exph=810&expw=1440&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=17EA708CD06E849ECBA0CB44AE46025C&selectedIndex=0&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "暗屏替代背景:人工智能神经网络接口的三维可视化，显示动态数 …" [ref=f3e69] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=SAFFSC8I&id=48D247B591306FE436784934FC03D505A78FF6D4&thid=OIP.SAFFSC8IffnUTiLcZR6DLQHaEK&mediaurl=https%3a%2f%2fpic.vjshi.com%2f2024-06-29%2fd28cf414551047ce94ffada080154524%2fonline%2fpuzzle.jpg%3fx-oss-process%3dstyle%2fw1440_h2880&exph=810&expw=1440&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=17EA708CD06E849ECBA0CB44AE46025C&selectedIndex=0&itb=0
+        - listitem [ref=f3e70]:
+          - generic [ref=f3e71]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e73] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=jHzgtTS2&id=9576FE49245B86E7FF1DA7BD5A0D78379C57DB17&thid=OIP.jHzgtTS2aFY1T7Ms8o39LAHaDw&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2fimg_convert%2fcc402d0051169f6322dfcaff73affa32.png&exph=359&expw=709&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=5B3A2C7371C661E4A6C337BAD392FD36&selectedIndex=1&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e75]
+            - generic [ref=f3e76]:
+              - link "论文必备 | 12个神经网络可视化工具-CSDN博客" [ref=f3e77] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=jHzgtTS2&id=9576FE49245B86E7FF1DA7BD5A0D78379C57DB17&thid=OIP.jHzgtTS2aFY1T7Ms8o39LAHaDw&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2fimg_convert%2fcc402d0051169f6322dfcaff73affa32.png&exph=359&expw=709&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=5B3A2C7371C661E4A6C337BAD392FD36&selectedIndex=1&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "论文必备 | 12个神经网络可视化工具-CSDN博客" [ref=f3e78] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=jHzgtTS2&id=9576FE49245B86E7FF1DA7BD5A0D78379C57DB17&thid=OIP.jHzgtTS2aFY1T7Ms8o39LAHaDw&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2fimg_convert%2fcc402d0051169f6322dfcaff73affa32.png&exph=359&expw=709&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=5B3A2C7371C661E4A6C337BAD392FD36&selectedIndex=1&itb=0
+        - listitem [ref=f3e79]:
+          - generic [ref=f3e80]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e82] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=wtdYCZ39&id=7CF19DBACA60725EE54282DE7CD207D0D329F4A5&thid=OIP.wtdYCZ39DJFxFyo8JS6WJgHaDB&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f92b2f1517963447b8dd41b9f4150497f.png&exph=614&expw=1505&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=5410F16B36D9A06158FDF7E80B4066C7&selectedIndex=2&itb=0
+              - generic [ref=f3e84]:
+                - img "neural network visualization dark minimal 的图像结果" [ref=f3e86]
+                - generic [ref=f3e87]:
+                  - img "neural network visualization dark minimal 的图像结果" [ref=f3e88]
+                  - img "neural network visualization dark minimal 的图像结果" [ref=f3e89]
+            - generic [ref=f3e90]:
+              - link "神经网络中的可视化_神经网络可视化-CSDN博客" [ref=f3e91] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=wtdYCZ39&id=7CF19DBACA60725EE54282DE7CD207D0D329F4A5&thid=OIP.wtdYCZ39DJFxFyo8JS6WJgHaDB&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f92b2f1517963447b8dd41b9f4150497f.png&exph=614&expw=1505&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=5410F16B36D9A06158FDF7E80B4066C7&selectedIndex=2&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "神经网络中的可视化_神经网络可视化-CSDN博客" [ref=f3e92] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=wtdYCZ39&id=7CF19DBACA60725EE54282DE7CD207D0D329F4A5&thid=OIP.wtdYCZ39DJFxFyo8JS6WJgHaDB&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f92b2f1517963447b8dd41b9f4150497f.png&exph=614&expw=1505&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=5410F16B36D9A06158FDF7E80B4066C7&selectedIndex=2&itb=0
+        - listitem [ref=f3e93]:
+          - generic [ref=f3e94]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e96] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=sPDGxVZq&id=0A43B8D7F57DBA5B5E7704C04AD2D460B9C84EE2&thid=OIP.sPDGxVZq96B7W64kJwUGKgHaDd&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f20210207103615467.png%3fx-oss-process%3dimage%2fwatermark%2ctype_ZmFuZ3poZW5naGVpdGk%2cshadow_10%2ctext_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ0MDE5NDI0%2csize_16%2ccolor_FFFFFF%2ct_70&exph=886&expw=1895&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=2E34207BB134EAA4F839E18CBCBB1036&selectedIndex=3&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e98]
+            - generic [ref=f3e99]:
+              - link "神经网络动态演示与网络结构可视化_3d visualization of a co-CSDN博客" [ref=f3e100] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=sPDGxVZq&id=0A43B8D7F57DBA5B5E7704C04AD2D460B9C84EE2&thid=OIP.sPDGxVZq96B7W64kJwUGKgHaDd&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f20210207103615467.png%3fx-oss-process%3dimage%2fwatermark%2ctype_ZmFuZ3poZW5naGVpdGk%2cshadow_10%2ctext_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ0MDE5NDI0%2csize_16%2ccolor_FFFFFF%2ct_70&exph=886&expw=1895&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=2E34207BB134EAA4F839E18CBCBB1036&selectedIndex=3&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "神经网络动态演示与网络结构可视化_3d visualization of a co-CSDN博客" [ref=f3e101] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=sPDGxVZq&id=0A43B8D7F57DBA5B5E7704C04AD2D460B9C84EE2&thid=OIP.sPDGxVZq96B7W64kJwUGKgHaDd&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f20210207103615467.png%3fx-oss-process%3dimage%2fwatermark%2ctype_ZmFuZ3poZW5naGVpdGk%2cshadow_10%2ctext_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ0MDE5NDI0%2csize_16%2ccolor_FFFFFF%2ct_70&exph=886&expw=1895&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=2E34207BB134EAA4F839E18CBCBB1036&selectedIndex=3&itb=0
+      - list [ref=f3e102]:
+        - listitem [ref=f3e103]:
+          - generic [ref=f3e104]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e106] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=2%2f8gEbHx&id=FA416B57EA78B7BA5962F001F4BF731B2A557E43&thid=OIP.2_8gEbHx1Vbmmyt7tNDyJgHaJ1&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fvisual-representation-neural-network-light-nodes-glowing-wires-dark-minimal-background-illustrating-artificial-377408770.jpg&exph=900&expw=678&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=A049C8A0C6C7F3921785775446342B7B&selectedIndex=4&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e108]
+            - generic [ref=f3e109]:
+              - link "Visual Representation of a Neural Network with Light Nodes and Glowing ..." [ref=f3e110] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=2%2f8gEbHx&id=FA416B57EA78B7BA5962F001F4BF731B2A557E43&thid=OIP.2_8gEbHx1Vbmmyt7tNDyJgHaJ1&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fvisual-representation-neural-network-light-nodes-glowing-wires-dark-minimal-background-illustrating-artificial-377408770.jpg&exph=900&expw=678&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=A049C8A0C6C7F3921785775446342B7B&selectedIndex=4&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Visual Representatio…" [ref=f3e111] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=2%2f8gEbHx&id=FA416B57EA78B7BA5962F001F4BF731B2A557E43&thid=OIP.2_8gEbHx1Vbmmyt7tNDyJgHaJ1&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fvisual-representation-neural-network-light-nodes-glowing-wires-dark-minimal-background-illustrating-artificial-377408770.jpg&exph=900&expw=678&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=A049C8A0C6C7F3921785775446342B7B&selectedIndex=4&itb=0
+        - listitem [ref=f3e112]:
+          - generic [ref=f3e113]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e115] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=PJsW4ai4&id=A6865A5B247E0C760798E10D5D5B89F59026869E&thid=OIP.PJsW4ai4vAkRvhTLN134ZwHaB7&mediaurl=https%3a%2f%2fts1.tc.mm.bing.net%2fth%2fid%2fR-C.3c9b16e1a8b8bc0911be14cb375df867%3frik%3dnoYmkPWJW10N4Q%26riu%3dhttp%253a%252f%252fmedia.au.tsinghua.edu.cn%252fcn%252fimages%252fban1.jpg%26ehk%3dQQ9LSuByz0savj55YffEJKTS2ls33Dj%252fMsbBOJuSjEQ%253d%26risl%3d%26pid%3dImgRaw%26r%3d0&exph=500&expw=1920&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=2F30DA686B6E4FACBCC54B430EE9DEFA&selectedIndex=5&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e117]
+            - generic [ref=f3e118]:
+              - link "Nature | 光神经网络全前向训练-清华大学成像与智能技术实验室" [ref=f3e119] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=PJsW4ai4&id=A6865A5B247E0C760798E10D5D5B89F59026869E&thid=OIP.PJsW4ai4vAkRvhTLN134ZwHaB7&mediaurl=https%3a%2f%2fts1.tc.mm.bing.net%2fth%2fid%2fR-C.3c9b16e1a8b8bc0911be14cb375df867%3frik%3dnoYmkPWJW10N4Q%26riu%3dhttp%253a%252f%252fmedia.au.tsinghua.edu.cn%252fcn%252fimages%252fban1.jpg%26ehk%3dQQ9LSuByz0savj55YffEJKTS2ls33Dj%252fMsbBOJuSjEQ%253d%26risl%3d%26pid%3dImgRaw%26r%3d0&exph=500&expw=1920&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=2F30DA686B6E4FACBCC54B430EE9DEFA&selectedIndex=5&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Nature | 光神经网络全前向训练-清华大学成像与智能技术实验室" [ref=f3e120] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=PJsW4ai4&id=A6865A5B247E0C760798E10D5D5B89F59026869E&thid=OIP.PJsW4ai4vAkRvhTLN134ZwHaB7&mediaurl=https%3a%2f%2fts1.tc.mm.bing.net%2fth%2fid%2fR-C.3c9b16e1a8b8bc0911be14cb375df867%3frik%3dnoYmkPWJW10N4Q%26riu%3dhttp%253a%252f%252fmedia.au.tsinghua.edu.cn%252fcn%252fimages%252fban1.jpg%26ehk%3dQQ9LSuByz0savj55YffEJKTS2ls33Dj%252fMsbBOJuSjEQ%253d%26risl%3d%26pid%3dImgRaw%26r%3d0&exph=500&expw=1920&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=2F30DA686B6E4FACBCC54B430EE9DEFA&selectedIndex=5&itb=0
+        - listitem [ref=f3e121]:
+          - generic [ref=f3e122]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e124] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=Kjw0GZQ8&id=54B6FB1F6E6A3C1783530CE16133864170D5514F&thid=OIP.Kjw0GZQ8cB7I9m3rN6xHdAHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fsleek-ai-generated-image-minimalist-neural-network-diagram-featuring-abstract-brain-shaped-nodes-connected-thin-elegant-410444239.jpg&exph=457&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F87CBD0A0E36A64388CCD37CA4AE6E9F&selectedIndex=6&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e126]
+            - generic [ref=f3e127]:
+              - link "Minimalist Neural Network Diagram with Abstract Brain Nodes (AI ..." [ref=f3e128] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=Kjw0GZQ8&id=54B6FB1F6E6A3C1783530CE16133864170D5514F&thid=OIP.Kjw0GZQ8cB7I9m3rN6xHdAHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fsleek-ai-generated-image-minimalist-neural-network-diagram-featuring-abstract-brain-shaped-nodes-connected-thin-elegant-410444239.jpg&exph=457&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F87CBD0A0E36A64388CCD37CA4AE6E9F&selectedIndex=6&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Minimalist Neural Network Diagram with Abstract Brain Nodes (AI ..." [ref=f3e129] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=Kjw0GZQ8&id=54B6FB1F6E6A3C1783530CE16133864170D5514F&thid=OIP.Kjw0GZQ8cB7I9m3rN6xHdAHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fsleek-ai-generated-image-minimalist-neural-network-diagram-featuring-abstract-brain-shaped-nodes-connected-thin-elegant-410444239.jpg&exph=457&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F87CBD0A0E36A64388CCD37CA4AE6E9F&selectedIndex=6&itb=0
+        - listitem [ref=f3e130]:
+          - generic [ref=f3e131]:
+            - generic [ref=f3e132]:
+              - link "neural network visualization dark minimal 的图像结果" [ref=f3e133] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=RosX5Ak6&id=3D1F14FDBA6CCD4D66F6A9802755A4A104B0DEA7&thid=OIP.RosX5Ak6h5XsHuOluMrUSAHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fdetailed-visual-representation-neural-networks-illustrated-dark-background-featuring-interconnected-nodes-data-pathways_93675-264155.jpg%3fw%3d2000&exph=1121&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=45A637AEF0A285371E2FBDB010DD34EB&selectedIndex=7&itb=0
+                - img "neural network visualization dark minimal 的图像结果" [ref=f3e135]
+              - generic:
+                - generic: 2000×1121
+                - link [ref=f3e136] [cursor=pointer]:
+                  - /url: https://www.freepik.com/premium-ai-image/detailed-visual-representation-neural-networks-illustrated-dark-background-featuring-interconnected-nodes-data-pathways_338757501.htm
+            - generic [ref=f3e140]:
+              - link "A detailed visual representation of neural networks illustrated on a ..." [ref=f3e141] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=RosX5Ak6&id=3D1F14FDBA6CCD4D66F6A9802755A4A104B0DEA7&thid=OIP.RosX5Ak6h5XsHuOluMrUSAHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fdetailed-visual-representation-neural-networks-illustrated-dark-background-featuring-interconnected-nodes-data-pathways_93675-264155.jpg%3fw%3d2000&exph=1121&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=45A637AEF0A285371E2FBDB010DD34EB&selectedIndex=7&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "A detailed visual representation of neural networks illustrated on a ..." [ref=f3e142] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=RosX5Ak6&id=3D1F14FDBA6CCD4D66F6A9802755A4A104B0DEA7&thid=OIP.RosX5Ak6h5XsHuOluMrUSAHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fdetailed-visual-representation-neural-networks-illustrated-dark-background-featuring-interconnected-nodes-data-pathways_93675-264155.jpg%3fw%3d2000&exph=1121&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=45A637AEF0A285371E2FBDB010DD34EB&selectedIndex=7&itb=0
+        - listitem [ref=f3e143]:
+          - generic [ref=f3e144]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e146] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=GALR6I7w&id=B2291563953389E7E8E85EE4CDC9ADF475F21D49&thid=OIP.GALR6I7w801AALUPGNJINwHaHm&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f2020041815502537.png%3fx-oss-process%3dimage%2fwatermark%2ctype_ZmFuZ3poZW5naGVpdGk%2cshadow_10%2ctext_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQxNjk0NTA0%2csize_16%2ccolor_FFFFFF%2ct_70&exph=1106&expw=1078&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7311611682C24C761F89332E0F3AC13B&selectedIndex=8&itb=1
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e148]
+            - generic [ref=f3e149]:
+              - link "可解释论文阅读（一）---Understanding Neural Networks Through Deep Visualization ..." [ref=f3e150] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=GALR6I7w&id=B2291563953389E7E8E85EE4CDC9ADF475F21D49&thid=OIP.GALR6I7w801AALUPGNJINwHaHm&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f2020041815502537.png%3fx-oss-process%3dimage%2fwatermark%2ctype_ZmFuZ3poZW5naGVpdGk%2cshadow_10%2ctext_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQxNjk0NTA0%2csize_16%2ccolor_FFFFFF%2ct_70&exph=1106&expw=1078&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7311611682C24C761F89332E0F3AC13B&selectedIndex=8&itb=1
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "可解释论文阅读（一）---Under…" [ref=f3e151] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=GALR6I7w&id=B2291563953389E7E8E85EE4CDC9ADF475F21D49&thid=OIP.GALR6I7w801AALUPGNJINwHaHm&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2f2020041815502537.png%3fx-oss-process%3dimage%2fwatermark%2ctype_ZmFuZ3poZW5naGVpdGk%2cshadow_10%2ctext_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQxNjk0NTA0%2csize_16%2ccolor_FFFFFF%2ct_70&exph=1106&expw=1078&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7311611682C24C761F89332E0F3AC13B&selectedIndex=8&itb=1
+      - list [ref=f3e152]:
+        - listitem [ref=f3e153]:
+          - generic [ref=f3e154]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e156] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=A9coSJng&id=31BC9941880FE830F20C3814CF1F6E82B0C28688&thid=OIP.A9coSJngBvdIpPF74LuCDwHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fminimalist-neural-network-diagram-abstract-brain-nodes-ai-generated-sleek-ai-generated-image-minimalist-neural-network-410444154.jpg&exph=457&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=A38E31EFD81E5BB0B88E5C7DF9949F80&selectedIndex=9&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e158]
+            - generic [ref=f3e159]:
+              - link "Minimalist Neural Network Diagram with Abstract Brain Nodes (AI ..." [ref=f3e160] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=A9coSJng&id=31BC9941880FE830F20C3814CF1F6E82B0C28688&thid=OIP.A9coSJngBvdIpPF74LuCDwHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fminimalist-neural-network-diagram-abstract-brain-nodes-ai-generated-sleek-ai-generated-image-minimalist-neural-network-410444154.jpg&exph=457&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=A38E31EFD81E5BB0B88E5C7DF9949F80&selectedIndex=9&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Minimalist Neural Network Diagram with Abstract Brain Nodes (AI ..." [ref=f3e161] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=A9coSJng&id=31BC9941880FE830F20C3814CF1F6E82B0C28688&thid=OIP.A9coSJngBvdIpPF74LuCDwHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fminimalist-neural-network-diagram-abstract-brain-nodes-ai-generated-sleek-ai-generated-image-minimalist-neural-network-410444154.jpg&exph=457&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=A38E31EFD81E5BB0B88E5C7DF9949F80&selectedIndex=9&itb=0
+        - listitem [ref=f3e162]:
+          - generic [ref=f3e163]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e165] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=dijN3Kt%2f&id=633C7E846D829F1A2C13C59AA25D934A09E67517&thid=OIP.dijN3Kt_x8Ln5LhCCWaLxQHaHV&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2fimg_convert%2f9e7cc484bd9092857fa6154a956b8737.jpeg&exph=631&expw=637&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=4D2EB2DDCD75E8A1BCC3303CDAFA7314&selectedIndex=10&itb=0
+              - generic [ref=f3e167]:
+                - img "neural network visualization dark minimal 的图像结果" [ref=f3e169]
+                - generic [ref=f3e170]:
+                  - img "neural network visualization dark minimal 的图像结果" [ref=f3e171]
+                  - img "neural network visualization dark minimal 的图像结果" [ref=f3e172]
+            - generic [ref=f3e173]:
+              - link "【深度学习】神经网络可视化工具，超全汇总！-CSDN博客" [ref=f3e174] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=dijN3Kt%2f&id=633C7E846D829F1A2C13C59AA25D934A09E67517&thid=OIP.dijN3Kt_x8Ln5LhCCWaLxQHaHV&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2fimg_convert%2f9e7cc484bd9092857fa6154a956b8737.jpeg&exph=631&expw=637&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=4D2EB2DDCD75E8A1BCC3303CDAFA7314&selectedIndex=10&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "【深度学习】神经网络可视化工具，超全汇总！-CSDN博客" [ref=f3e175] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=dijN3Kt%2f&id=633C7E846D829F1A2C13C59AA25D934A09E67517&thid=OIP.dijN3Kt_x8Ln5LhCCWaLxQHaHV&mediaurl=https%3a%2f%2fimg-blog.csdnimg.cn%2fimg_convert%2f9e7cc484bd9092857fa6154a956b8737.jpeg&exph=631&expw=637&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=4D2EB2DDCD75E8A1BCC3303CDAFA7314&selectedIndex=10&itb=0
+        - listitem [ref=f3e176]:
+          - generic [ref=f3e177]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e179] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=%2f5gWjozh&id=78A1D447EAC76A09DDF1AD6EB385F71D38DA38C1&thid=OIP._5gWjozhS3wRtgURpKm55AHaCS&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fdirect%2ff8b999968687409787478fb19b0fa095.png&exph=168&expw=545&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7E9F8EB15B95BDC236297ABBAB3DC69D&selectedIndex=11&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e181]
+            - generic [ref=f3e182]:
+              - link "隐式神经网络实现低光照图像增强_nerco-CSDN博客" [ref=f3e183] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=%2f5gWjozh&id=78A1D447EAC76A09DDF1AD6EB385F71D38DA38C1&thid=OIP._5gWjozhS3wRtgURpKm55AHaCS&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fdirect%2ff8b999968687409787478fb19b0fa095.png&exph=168&expw=545&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7E9F8EB15B95BDC236297ABBAB3DC69D&selectedIndex=11&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "隐式神经网络实现低光照图像增强_nerco-CSDN博客" [ref=f3e184] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=%2f5gWjozh&id=78A1D447EAC76A09DDF1AD6EB385F71D38DA38C1&thid=OIP._5gWjozhS3wRtgURpKm55AHaCS&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fdirect%2ff8b999968687409787478fb19b0fa095.png&exph=168&expw=545&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7E9F8EB15B95BDC236297ABBAB3DC69D&selectedIndex=11&itb=0
+        - listitem [ref=f3e185]:
+          - generic [ref=f3e186]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e188] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=8uTlr%2b4T&id=049DEDAFF291870DD2D91B1DED9748BEA5764C9F&thid=OIP.8uTlr-4TiDh_qKTl4BUvjAHaE7&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fabstract-neural-network-concept-art-with-glowing-connections-nodes-dark-background_996993-28057.jpg%3fw%3d2000&exph=1333&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=C5D53432E8AAC72C585503901916294C&selectedIndex=12&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e190]
+            - generic [ref=f3e191]:
+              - link "Premium Photo | Abstract Neural Network Concept Art with Glowing ..." [ref=f3e192] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=8uTlr%2b4T&id=049DEDAFF291870DD2D91B1DED9748BEA5764C9F&thid=OIP.8uTlr-4TiDh_qKTl4BUvjAHaE7&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fabstract-neural-network-concept-art-with-glowing-connections-nodes-dark-background_996993-28057.jpg%3fw%3d2000&exph=1333&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=C5D53432E8AAC72C585503901916294C&selectedIndex=12&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Premium Photo | Abstract Neural Network Concept Art with Glowing ..." [ref=f3e193] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=8uTlr%2b4T&id=049DEDAFF291870DD2D91B1DED9748BEA5764C9F&thid=OIP.8uTlr-4TiDh_qKTl4BUvjAHaE7&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fabstract-neural-network-concept-art-with-glowing-connections-nodes-dark-background_996993-28057.jpg%3fw%3d2000&exph=1333&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=C5D53432E8AAC72C585503901916294C&selectedIndex=12&itb=0
+      - list [ref=f3e194]:
+        - listitem [ref=f3e195]:
+          - generic [ref=f3e196]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e198] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=jKN0NRXU&id=334898AAD062EFD5F4B3D681389559D0AC454D6D&thid=OIP.jKN0NRXUWphGwsAc1f0c3AHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2finnovative-abstract-neural-network-visual-with-interconnected-nodes-dark-digital-backgr_1296468-11763.jpg&exph=351&expw=626&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7F6882B46274DB8945847683ADA2D669&selectedIndex=13&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e200]
+            - generic [ref=f3e201]:
+              - link "Innovative Abstract Neural Network Visual with Interconnected Nodes on ..." [ref=f3e202] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=jKN0NRXU&id=334898AAD062EFD5F4B3D681389559D0AC454D6D&thid=OIP.jKN0NRXUWphGwsAc1f0c3AHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2finnovative-abstract-neural-network-visual-with-interconnected-nodes-dark-digital-backgr_1296468-11763.jpg&exph=351&expw=626&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7F6882B46274DB8945847683ADA2D669&selectedIndex=13&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Innovative Abstract Neural Network Visual with Interconnected Nodes …" [ref=f3e203] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=jKN0NRXU&id=334898AAD062EFD5F4B3D681389559D0AC454D6D&thid=OIP.jKN0NRXUWphGwsAc1f0c3AHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2finnovative-abstract-neural-network-visual-with-interconnected-nodes-dark-digital-backgr_1296468-11763.jpg&exph=351&expw=626&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=7F6882B46274DB8945847683ADA2D669&selectedIndex=13&itb=0
+        - listitem [ref=f3e204]:
+          - generic [ref=f3e205]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e207] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=O5JaZWlu&id=85B602AA71503251392057C4627B3484F74BC7B8&thid=OIP.O5JaZWluptlFGweotNJWEQHaEK&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fdark-neural-network-connections-cyberspace-technology-generative-ai_845977-4740.jpg%3fw%3d996&exph=560&expw=996&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=74EBBEEF9902E0DA2CCD3FCF3729DBAE&selectedIndex=14&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e209]
+            - generic [ref=f3e210]:
+              - link "Premium AI Image | Dark neural network of connections cyberspace ..." [ref=f3e211] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=O5JaZWlu&id=85B602AA71503251392057C4627B3484F74BC7B8&thid=OIP.O5JaZWluptlFGweotNJWEQHaEK&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fdark-neural-network-connections-cyberspace-technology-generative-ai_845977-4740.jpg%3fw%3d996&exph=560&expw=996&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=74EBBEEF9902E0DA2CCD3FCF3729DBAE&selectedIndex=14&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Premium AI Image | Dark neural network of connections cyberspa…" [ref=f3e212] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=O5JaZWlu&id=85B602AA71503251392057C4627B3484F74BC7B8&thid=OIP.O5JaZWluptlFGweotNJWEQHaEK&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fdark-neural-network-connections-cyberspace-technology-generative-ai_845977-4740.jpg%3fw%3d996&exph=560&expw=996&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=74EBBEEF9902E0DA2CCD3FCF3729DBAE&selectedIndex=14&itb=0
+        - listitem [ref=f3e213]:
+          - generic [ref=f3e214]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e216] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=50uIzoGj&id=AAA218F4CDC4DA62614F8D6BB5A8FD68E22F5B33&thid=OIP.50uIzoGj_hWZ23GEFtbwRgHaN9&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fabstract-blue-dark-neural-network-graphics-combined-minimal-corporate-patterns-abstract-blue-dark-neural-network-354532202.jpg&exph=1690&expw=897&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F0C0EB6FD70922B0C21FB7150498E93A&selectedIndex=15&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e218]
+            - generic [ref=f3e219]:
+              - link "Abstract Blue and Dark Neural Network Graphics Combined with Minimal ..." [ref=f3e220] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=50uIzoGj&id=AAA218F4CDC4DA62614F8D6BB5A8FD68E22F5B33&thid=OIP.50uIzoGj_hWZ23GEFtbwRgHaN9&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fabstract-blue-dark-neural-network-graphics-combined-minimal-corporate-patterns-abstract-blue-dark-neural-network-354532202.jpg&exph=1690&expw=897&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F0C0EB6FD70922B0C21FB7150498E93A&selectedIndex=15&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Abstract Blue and Dark Neural Ne…" [ref=f3e221] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=50uIzoGj&id=AAA218F4CDC4DA62614F8D6BB5A8FD68E22F5B33&thid=OIP.50uIzoGj_hWZ23GEFtbwRgHaN9&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fabstract-blue-dark-neural-network-graphics-combined-minimal-corporate-patterns-abstract-blue-dark-neural-network-354532202.jpg&exph=1690&expw=897&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F0C0EB6FD70922B0C21FB7150498E93A&selectedIndex=15&itb=0
+        - listitem [ref=f3e222]:
+          - generic [ref=f3e223]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e225] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=vTgxj8ih&id=78A1D447EAC76A09DDF13937F2FE97F4A39EA7A8&thid=OIP.vTgxj8ihthG2cpOLEEXljwHaDK&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fdirect%2f59837e39037f4e0099258c02ed5773b5.png&exph=441&expw=1032&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F485BCB849423483F63B857EEC8FCEAA&selectedIndex=16&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e227]
+            - generic [ref=f3e228]:
+              - link "隐式神经网络实现低光照图像增强_nerco-CSDN博客" [ref=f3e229] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=vTgxj8ih&id=78A1D447EAC76A09DDF13937F2FE97F4A39EA7A8&thid=OIP.vTgxj8ihthG2cpOLEEXljwHaDK&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fdirect%2f59837e39037f4e0099258c02ed5773b5.png&exph=441&expw=1032&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F485BCB849423483F63B857EEC8FCEAA&selectedIndex=16&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "隐式神经网络实现低光照图像增强_nerco-CSDN博客" [ref=f3e230] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=vTgxj8ih&id=78A1D447EAC76A09DDF13937F2FE97F4A39EA7A8&thid=OIP.vTgxj8ihthG2cpOLEEXljwHaDK&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fdirect%2f59837e39037f4e0099258c02ed5773b5.png&exph=441&expw=1032&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F485BCB849423483F63B857EEC8FCEAA&selectedIndex=16&itb=0
+        - listitem [ref=f3e231]:
+          - generic [ref=f3e232]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e234] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=BibkMvCB&id=584485A291EF11D035B083E1019AD90055B87C06&thid=OIP.BibkMvCBlIRPXR50g0yqrgHaEl&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fdark-neural-network-connections-cyberspace-technology-generative-ai-278516762.jpg&exph=990&expw=1600&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F0A3CBA904A932E96D4D1B8827596550&selectedIndex=17&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e236]
+            - generic [ref=f3e237]:
+              - link "Dark Neural Network of Connections, Cyberspace Technology Generative Ai ..." [ref=f3e238] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=BibkMvCB&id=584485A291EF11D035B083E1019AD90055B87C06&thid=OIP.BibkMvCBlIRPXR50g0yqrgHaEl&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fdark-neural-network-connections-cyberspace-technology-generative-ai-278516762.jpg&exph=990&expw=1600&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F0A3CBA904A932E96D4D1B8827596550&selectedIndex=17&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Dark Neural Network of Connections, Cyberspace Te…" [ref=f3e239] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=BibkMvCB&id=584485A291EF11D035B083E1019AD90055B87C06&thid=OIP.BibkMvCBlIRPXR50g0yqrgHaEl&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fdark-neural-network-connections-cyberspace-technology-generative-ai-278516762.jpg&exph=990&expw=1600&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F0A3CBA904A932E96D4D1B8827596550&selectedIndex=17&itb=0
+      - list [ref=f3e240]:
+        - listitem [ref=f3e241]:
+          - generic [ref=f3e242]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e244] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=QA6vL4Xb&id=AAA218F4CDC4DA62614F3764848B2F2D61275AA3&thid=OIP.QA6vL4XbH04iXDk4PsOoWgHaNM&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-blue-dark-neural-network-graphics-combined-minimal-corporate-patterns-abstract-blue-dark-neural-network-354532202.jpg&exph=900&expw=505&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=EBB7901E743BFACF38DD6DCAB11F51C5&selectedIndex=18&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e246]
+            - generic [ref=f3e247]:
+              - link "Abstract Blue and Dark Neural Network Graphics Combined with Minimal ..." [ref=f3e248] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=QA6vL4Xb&id=AAA218F4CDC4DA62614F3764848B2F2D61275AA3&thid=OIP.QA6vL4XbH04iXDk4PsOoWgHaNM&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-blue-dark-neural-network-graphics-combined-minimal-corporate-patterns-abstract-blue-dark-neural-network-354532202.jpg&exph=900&expw=505&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=EBB7901E743BFACF38DD6DCAB11F51C5&selectedIndex=18&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Abstract Blue and Dark Neural Ne…" [ref=f3e249] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=QA6vL4Xb&id=AAA218F4CDC4DA62614F3764848B2F2D61275AA3&thid=OIP.QA6vL4XbH04iXDk4PsOoWgHaNM&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-blue-dark-neural-network-graphics-combined-minimal-corporate-patterns-abstract-blue-dark-neural-network-354532202.jpg&exph=900&expw=505&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=EBB7901E743BFACF38DD6DCAB11F51C5&selectedIndex=18&itb=0
+        - listitem [ref=f3e250]:
+          - generic [ref=f3e251]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e253] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=%2f7Jm6FHN&id=A6CC3DF8FE6F5FB4E2521B685A132DC80490E52A&thid=OIP._7Jm6FHNPmcLu8EyP5ixiQHaEC&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fneural-network-growth-dark-digital-surface-stunning-abstract-visualization-depicts-vibrant-interconnected-structure-422885345.jpg&exph=437&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=6241E69DC62D13068B19BE49763176D9&selectedIndex=19&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e255]
+            - generic [ref=f3e256]:
+              - link "Neural Network Growth on a Dark Digital Surface Stock Illustration ..." [ref=f3e257] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=%2f7Jm6FHN&id=A6CC3DF8FE6F5FB4E2521B685A132DC80490E52A&thid=OIP._7Jm6FHNPmcLu8EyP5ixiQHaEC&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fneural-network-growth-dark-digital-surface-stunning-abstract-visualization-depicts-vibrant-interconnected-structure-422885345.jpg&exph=437&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=6241E69DC62D13068B19BE49763176D9&selectedIndex=19&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Neural Network Growth on a Dark Digital Surface Stock Illustration ..." [ref=f3e258] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=%2f7Jm6FHN&id=A6CC3DF8FE6F5FB4E2521B685A132DC80490E52A&thid=OIP._7Jm6FHNPmcLu8EyP5ixiQHaEC&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fneural-network-growth-dark-digital-surface-stunning-abstract-visualization-depicts-vibrant-interconnected-structure-422885345.jpg&exph=437&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=6241E69DC62D13068B19BE49763176D9&selectedIndex=19&itb=0
+        - listitem [ref=f3e259]:
+          - generic [ref=f3e260]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e262] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=rNEX05oT&id=633C7E846D829F1A2C13DFD8B6E7ED41F3ED215E&thid=OIP.rNEX05oT_a8F-OEYrAgsAAHaDJ&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fblog_migrate%2fa2672d205e649201239e8dde4b911b12.png&exph=304&expw=716&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=ED355EAE5DB3DD57B478B464F312E55C&selectedIndex=20&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e264]
+            - generic [ref=f3e265]:
+              - link "【深度学习】神经网络可视化工具，超全汇总！-CSDN博客" [ref=f3e266] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=rNEX05oT&id=633C7E846D829F1A2C13DFD8B6E7ED41F3ED215E&thid=OIP.rNEX05oT_a8F-OEYrAgsAAHaDJ&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fblog_migrate%2fa2672d205e649201239e8dde4b911b12.png&exph=304&expw=716&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=ED355EAE5DB3DD57B478B464F312E55C&selectedIndex=20&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "【深度学习】神经网络可视化工具，超全汇总！-CSDN博客" [ref=f3e267] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=rNEX05oT&id=633C7E846D829F1A2C13DFD8B6E7ED41F3ED215E&thid=OIP.rNEX05oT_a8F-OEYrAgsAAHaDJ&mediaurl=https%3a%2f%2fi-blog.csdnimg.cn%2fblog_migrate%2fa2672d205e649201239e8dde4b911b12.png&exph=304&expw=716&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=ED355EAE5DB3DD57B478B464F312E55C&selectedIndex=20&itb=0
+        - listitem [ref=f3e268]:
+          - generic [ref=f3e269]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e271] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=wdBXhqaG&id=697173383EA53307503B76D35C1D60D00EB82F46&thid=OIP.wdBXhqaGm1r2EvYGfL6b_QHaHa&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-neural-network-visualization-glowing-connections-dark-background-digital-networks-interconnected-nodes-387682745.jpg&exph=800&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=BA2A504528E000E4648F1B046E90B9A2&selectedIndex=21&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e273]
+            - generic [ref=f3e274]:
+              - link "Abstract Neural Network Visualization with Glowing Connections in Dark ..." [ref=f3e275] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=wdBXhqaG&id=697173383EA53307503B76D35C1D60D00EB82F46&thid=OIP.wdBXhqaGm1r2EvYGfL6b_QHaHa&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-neural-network-visualization-glowing-connections-dark-background-digital-networks-interconnected-nodes-387682745.jpg&exph=800&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=BA2A504528E000E4648F1B046E90B9A2&selectedIndex=21&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Abstract Neural Network Visualization with Glo…" [ref=f3e276] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=wdBXhqaG&id=697173383EA53307503B76D35C1D60D00EB82F46&thid=OIP.wdBXhqaGm1r2EvYGfL6b_QHaHa&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-neural-network-visualization-glowing-connections-dark-background-digital-networks-interconnected-nodes-387682745.jpg&exph=800&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=BA2A504528E000E4648F1B046E90B9A2&selectedIndex=21&itb=0
+        - listitem [ref=f3e277]:
+          - generic [ref=f3e278]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e280] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=9tMylmya&id=D0A79DDBAE26E52452F3291B96FE84DA45B9FC0C&thid=OIP.9tMylmyairtwGwfAFzfn_wHaJW&mediaurl=https%3a%2f%2fs2.51cto.com%2fimages%2fblog%2f202512%2f01140008_692d2ee87562e73683.png%3fx-oss-process%3dimage%2fwatermark%2csize_16%2ctext_QDUxQ1RP5Y2a5a6i%2ccolor_FFFFFF%2ct_30%2cg_se%2cx_10%2cy_10%2cshadow_20%2ctype_ZmFuZ3poZW5naGVpdGk%3d%2fresize%2cm_fixed%2cw_1184&exph=1228&expw=972&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=FE908400EC60CBE48583EB8B04BA86B5&selectedIndex=22&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e282]
+            - generic [ref=f3e283]:
+              - link "基于深度学习的低光照图像增强方法总结（2017-2019）| 博文精选_mob64ca13ff9303的技术博客_51CTO博客" [ref=f3e284] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=9tMylmya&id=D0A79DDBAE26E52452F3291B96FE84DA45B9FC0C&thid=OIP.9tMylmyairtwGwfAFzfn_wHaJW&mediaurl=https%3a%2f%2fs2.51cto.com%2fimages%2fblog%2f202512%2f01140008_692d2ee87562e73683.png%3fx-oss-process%3dimage%2fwatermark%2csize_16%2ctext_QDUxQ1RP5Y2a5a6i%2ccolor_FFFFFF%2ct_30%2cg_se%2cx_10%2cy_10%2cshadow_20%2ctype_ZmFuZ3poZW5naGVpdGk%3d%2fresize%2cm_fixed%2cw_1184&exph=1228&expw=972&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=FE908400EC60CBE48583EB8B04BA86B5&selectedIndex=22&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "基于深度学习的低光照图像增强 …" [ref=f3e285] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=9tMylmya&id=D0A79DDBAE26E52452F3291B96FE84DA45B9FC0C&thid=OIP.9tMylmyairtwGwfAFzfn_wHaJW&mediaurl=https%3a%2f%2fs2.51cto.com%2fimages%2fblog%2f202512%2f01140008_692d2ee87562e73683.png%3fx-oss-process%3dimage%2fwatermark%2csize_16%2ctext_QDUxQ1RP5Y2a5a6i%2ccolor_FFFFFF%2ct_30%2cg_se%2cx_10%2cy_10%2cshadow_20%2ctype_ZmFuZ3poZW5naGVpdGk%3d%2fresize%2cm_fixed%2cw_1184&exph=1228&expw=972&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=FE908400EC60CBE48583EB8B04BA86B5&selectedIndex=22&itb=0
+      - list [ref=f3e286]:
+        - listitem [ref=f3e287]:
+          - generic [ref=f3e288]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e290] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=s9RtOVof&id=E4391DC4501E518964D3C63F9080FC77183508F9&thid=OIP.s9RtOVofylhn2V0ElvHEeAHaEK&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-visualization-presents-neural-network-glowing-nodes-connected-lines-against-dark-background-image-419107229.jpg&exph=449&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=14D8DF27153F2DE4223063F2DFB3CA4F&selectedIndex=23&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e292]
+            - generic [ref=f3e293]:
+              - link "Abstract Neural Network Visualization with Glowing Nodes and Dark ..." [ref=f3e294] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=s9RtOVof&id=E4391DC4501E518964D3C63F9080FC77183508F9&thid=OIP.s9RtOVofylhn2V0ElvHEeAHaEK&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-visualization-presents-neural-network-glowing-nodes-connected-lines-against-dark-background-image-419107229.jpg&exph=449&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=14D8DF27153F2DE4223063F2DFB3CA4F&selectedIndex=23&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Abstract Neural Network Visualization with Glowing Nodes and Dark ..." [ref=f3e295] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=s9RtOVof&id=E4391DC4501E518964D3C63F9080FC77183508F9&thid=OIP.s9RtOVofylhn2V0ElvHEeAHaEK&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-visualization-presents-neural-network-glowing-nodes-connected-lines-against-dark-background-image-419107229.jpg&exph=449&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=14D8DF27153F2DE4223063F2DFB3CA4F&selectedIndex=23&itb=0
+        - listitem [ref=f3e296]:
+          - generic [ref=f3e297]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e299] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=NaSTR1zX&id=076731B6399F6CEF7FF56FC9FF4267A97114130A&thid=OIP.NaSTR1zX6o5Y-f3amyWH3AHaEK&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fbright-neural-network-representation-made-light-nodes-glowing-wires-against-dark-minimal-backdrop-showcasing-advanced-377403340.jpg&exph=449&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=82E7121BF025BCC7B3290761A2F3BB16&selectedIndex=24&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e301]
+            - generic [ref=f3e302]:
+              - link "Bright Neural Network Representation Made of Light Nodes and Glowing ..." [ref=f3e303] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=NaSTR1zX&id=076731B6399F6CEF7FF56FC9FF4267A97114130A&thid=OIP.NaSTR1zX6o5Y-f3amyWH3AHaEK&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fbright-neural-network-representation-made-light-nodes-glowing-wires-against-dark-minimal-backdrop-showcasing-advanced-377403340.jpg&exph=449&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=82E7121BF025BCC7B3290761A2F3BB16&selectedIndex=24&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Bright Neural Network Representation Made of Light Nodes and Glowing ..." [ref=f3e304] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=NaSTR1zX&id=076731B6399F6CEF7FF56FC9FF4267A97114130A&thid=OIP.NaSTR1zX6o5Y-f3amyWH3AHaEK&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fbright-neural-network-representation-made-light-nodes-glowing-wires-against-dark-minimal-backdrop-showcasing-advanced-377403340.jpg&exph=449&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=82E7121BF025BCC7B3290761A2F3BB16&selectedIndex=24&itb=0
+        - listitem [ref=f3e305]:
+          - generic [ref=f3e306]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e308] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=LAgMMAHn&id=24DB9C5F1EF2EEBDCE55A81CD72FD735B1375590&thid=OIP.LAgMMAHnJXPKPKQmDjw2FwHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fabstract-neural-network-glowing-blue-particles-lines-dark-backdrop-digital-background-with-grid-surface-form-waves-generative-ai_155390-647.jpg%3fw%3d2000&exph=1121&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=4584C003CA1A9DC0A6457E218C061BEC&selectedIndex=25&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e310]
+            - generic [ref=f3e311]:
+              - link "Premium Photo | Abstract neural network of glowing blue particles and ..." [ref=f3e312] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=LAgMMAHn&id=24DB9C5F1EF2EEBDCE55A81CD72FD735B1375590&thid=OIP.LAgMMAHnJXPKPKQmDjw2FwHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fabstract-neural-network-glowing-blue-particles-lines-dark-backdrop-digital-background-with-grid-surface-form-waves-generative-ai_155390-647.jpg%3fw%3d2000&exph=1121&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=4584C003CA1A9DC0A6457E218C061BEC&selectedIndex=25&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Premium Photo | Abstract neural network of glowing blue particles and ..." [ref=f3e313] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=LAgMMAHn&id=24DB9C5F1EF2EEBDCE55A81CD72FD735B1375590&thid=OIP.LAgMMAHnJXPKPKQmDjw2FwHaEJ&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fabstract-neural-network-glowing-blue-particles-lines-dark-backdrop-digital-background-with-grid-surface-form-waves-generative-ai_155390-647.jpg%3fw%3d2000&exph=1121&expw=2000&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=4584C003CA1A9DC0A6457E218C061BEC&selectedIndex=25&itb=0
+        - listitem [ref=f3e314]:
+          - generic [ref=f3e315]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e317] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=F%2fxUVaD6&id=81FCF356061A1355C9E83D527ABE839763664049&thid=OIP.F_xUVaD6vq4JTyBiodTh1AHaEK&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fthumbnails%2f070%2f674%2f712%2flarge%2fminimalist-glowing-neural-network-with-abstract-connections-on-black-background-free-video.jpg&exph=450&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=039323179D786F9DC82CD20D931976CA&selectedIndex=26&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e319]
+            - generic [ref=f3e320]:
+              - link "Minimalist Glowing Neural Network with Abstract Connections on Black ..." [ref=f3e321] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=F%2fxUVaD6&id=81FCF356061A1355C9E83D527ABE839763664049&thid=OIP.F_xUVaD6vq4JTyBiodTh1AHaEK&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fthumbnails%2f070%2f674%2f712%2flarge%2fminimalist-glowing-neural-network-with-abstract-connections-on-black-background-free-video.jpg&exph=450&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=039323179D786F9DC82CD20D931976CA&selectedIndex=26&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Minimalist Glowing Neural Network with Abstract Connections on Black ..." [ref=f3e322] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=F%2fxUVaD6&id=81FCF356061A1355C9E83D527ABE839763664049&thid=OIP.F_xUVaD6vq4JTyBiodTh1AHaEK&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fthumbnails%2f070%2f674%2f712%2flarge%2fminimalist-glowing-neural-network-with-abstract-connections-on-black-background-free-video.jpg&exph=450&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=039323179D786F9DC82CD20D931976CA&selectedIndex=26&itb=0
+      - list [ref=f3e323]:
+        - listitem [ref=f3e324]:
+          - generic [ref=f3e325]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e327] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=7xQwTuBe&id=4FCF7A42FE29B0DE4C947299FDB9D34CF6FC545E&thid=OIP.7xQwTuBeYOxQVmSC3ym27QAAAA&mediaurl=https%3a%2f%2fimages.stockcake.com%2fpublic%2f7%2f6%2f2%2f762df5a7-ad39-4264-86c5-ac69cf133810_small%2fneural-network-visualization-stockcake.jpg&exph=104&expw=184&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F50AA157FD4588885B9031DB484A36B2&selectedIndex=27&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e329]
+            - generic [ref=f3e330]:
+              - link "Free Neural Network Visualization Image - Neural, Network, Technology ..." [ref=f3e331] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=7xQwTuBe&id=4FCF7A42FE29B0DE4C947299FDB9D34CF6FC545E&thid=OIP.7xQwTuBeYOxQVmSC3ym27QAAAA&mediaurl=https%3a%2f%2fimages.stockcake.com%2fpublic%2f7%2f6%2f2%2f762df5a7-ad39-4264-86c5-ac69cf133810_small%2fneural-network-visualization-stockcake.jpg&exph=104&expw=184&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F50AA157FD4588885B9031DB484A36B2&selectedIndex=27&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Free Neural Network Visualization Image - N…" [ref=f3e332] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=7xQwTuBe&id=4FCF7A42FE29B0DE4C947299FDB9D34CF6FC545E&thid=OIP.7xQwTuBeYOxQVmSC3ym27QAAAA&mediaurl=https%3a%2f%2fimages.stockcake.com%2fpublic%2f7%2f6%2f2%2f762df5a7-ad39-4264-86c5-ac69cf133810_small%2fneural-network-visualization-stockcake.jpg&exph=104&expw=184&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=F50AA157FD4588885B9031DB484A36B2&selectedIndex=27&itb=0
+        - listitem [ref=f3e333]:
+          - generic [ref=f3e334]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e336] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=ckM4BWuh&id=3637F536BF7F83CE8E7CF3597CFE21826B9453B3&thid=OIP.ckM4BWuhr0rnAY_dkaoiWgHaE7&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2ffuturistic-glowing-neural-network-dark-minimal-tech-space-bright-neural-fibers-intertwine-glowing-violet-blue-hues-406750576.jpg&exph=533&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=72A56468E9D996833317E65654E7FB6B&selectedIndex=28&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e338]
+            - generic [ref=f3e339]:
+              - link "Futuristic Glowing Neural Network in Dark Minimal Tech Space Stock ..." [ref=f3e340] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=ckM4BWuh&id=3637F536BF7F83CE8E7CF3597CFE21826B9453B3&thid=OIP.ckM4BWuhr0rnAY_dkaoiWgHaE7&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2ffuturistic-glowing-neural-network-dark-minimal-tech-space-bright-neural-fibers-intertwine-glowing-violet-blue-hues-406750576.jpg&exph=533&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=72A56468E9D996833317E65654E7FB6B&selectedIndex=28&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Futuristic Glowing Neural Network in Dark Minimal Tech Space Stock ..." [ref=f3e341] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=ckM4BWuh&id=3637F536BF7F83CE8E7CF3597CFE21826B9453B3&thid=OIP.ckM4BWuhr0rnAY_dkaoiWgHaE7&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2ffuturistic-glowing-neural-network-dark-minimal-tech-space-bright-neural-fibers-intertwine-glowing-violet-blue-hues-406750576.jpg&exph=533&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=72A56468E9D996833317E65654E7FB6B&selectedIndex=28&itb=0
+        - listitem [ref=f3e342]:
+          - generic [ref=f3e343]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e345] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=nTYSfRTi&id=14473B2FB554AF056E2EB0F877E17D6DF4A8FBE4&thid=OIP.nTYSfRTihSeKrKAWVRPYSQHaEC&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-visualization-glowing-neural-network-connections-representing-artificial-intelligence-processing-data-dark-showcases-440899045.jpg&exph=437&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=34D7B455D8298341689BF593A8B01477&selectedIndex=29&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e347]
+            - generic [ref=f3e348]:
+              - link "Abstract Visualization of Glowing Neural Network Connections ..." [ref=f3e349] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=nTYSfRTi&id=14473B2FB554AF056E2EB0F877E17D6DF4A8FBE4&thid=OIP.nTYSfRTihSeKrKAWVRPYSQHaEC&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-visualization-glowing-neural-network-connections-representing-artificial-intelligence-processing-data-dark-showcases-440899045.jpg&exph=437&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=34D7B455D8298341689BF593A8B01477&selectedIndex=29&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Abstract Visualization of Glowing Neural Network Connections ..." [ref=f3e350] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=nTYSfRTi&id=14473B2FB554AF056E2EB0F877E17D6DF4A8FBE4&thid=OIP.nTYSfRTihSeKrKAWVRPYSQHaEC&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fabstract-visualization-glowing-neural-network-connections-representing-artificial-intelligence-processing-data-dark-showcases-440899045.jpg&exph=437&expw=800&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=34D7B455D8298341689BF593A8B01477&selectedIndex=29&itb=0
+        - listitem [ref=f3e351]:
+          - generic [ref=f3e352]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e354] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=esgtySNA&id=98012CCB0C7052A2DB173ABB9DD7BFBE26BC3B62&thid=OIP.esgtySNAYIjoJcISB-SiSAHaCO&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fpreviews%2f066%2f533%2f336%2flarge_2x%2fabstract-network-mesh-of-interconnected-yellow-nodes-and-lines-on-a-dark-blue-background-resembling-a-digital-or-neural-network-visualization-vector.jpg&exph=576&expw=1920&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=AF5DF773FB44B20016637F40A6E25FE7&selectedIndex=30&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e356]
+            - generic [ref=f3e357]:
+              - link "Abstract network mesh of interconnected yellow nodes and lines on a ..." [ref=f3e358] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=esgtySNA&id=98012CCB0C7052A2DB173ABB9DD7BFBE26BC3B62&thid=OIP.esgtySNAYIjoJcISB-SiSAHaCO&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fpreviews%2f066%2f533%2f336%2flarge_2x%2fabstract-network-mesh-of-interconnected-yellow-nodes-and-lines-on-a-dark-blue-background-resembling-a-digital-or-neural-network-visualization-vector.jpg&exph=576&expw=1920&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=AF5DF773FB44B20016637F40A6E25FE7&selectedIndex=30&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Abstract network mesh of interconnected yellow nodes and lines on a ..." [ref=f3e359] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=esgtySNA&id=98012CCB0C7052A2DB173ABB9DD7BFBE26BC3B62&thid=OIP.esgtySNAYIjoJcISB-SiSAHaCO&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fpreviews%2f066%2f533%2f336%2flarge_2x%2fabstract-network-mesh-of-interconnected-yellow-nodes-and-lines-on-a-dark-blue-background-resembling-a-digital-or-neural-network-visualization-vector.jpg&exph=576&expw=1920&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=AF5DF773FB44B20016637F40A6E25FE7&selectedIndex=30&itb=0
+      - list [ref=f3e360]:
+        - listitem [ref=f3e361]:
+          - generic [ref=f3e362]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e364] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=18%2b37wQb&id=12FB9FC1DBDC33EAE7AEC8E1C3F2D9F419D5639D&thid=OIP.18-37wQbnUaaZQjrDOA7nwHaE8&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fpreviews%2f023%2f457%2f881%2flarge_2x%2fneural-network-tree-learning-artificial-intelligence-in-dark-background-generative-ai-photo.jpg&exph=1960&expw=2940&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=927F5E5CB9D271B1D68FBD6363D0A2F0&selectedIndex=31&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e366]
+            - generic [ref=f3e367]:
+              - link "neural network tree, learning artificial intelligence in dark ..." [ref=f3e368] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=18%2b37wQb&id=12FB9FC1DBDC33EAE7AEC8E1C3F2D9F419D5639D&thid=OIP.18-37wQbnUaaZQjrDOA7nwHaE8&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fpreviews%2f023%2f457%2f881%2flarge_2x%2fneural-network-tree-learning-artificial-intelligence-in-dark-background-generative-ai-photo.jpg&exph=1960&expw=2940&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=927F5E5CB9D271B1D68FBD6363D0A2F0&selectedIndex=31&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "neural network tree, learning artificial intelligence in dark ..." [ref=f3e369] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=18%2b37wQb&id=12FB9FC1DBDC33EAE7AEC8E1C3F2D9F419D5639D&thid=OIP.18-37wQbnUaaZQjrDOA7nwHaE8&mediaurl=https%3a%2f%2fstatic.vecteezy.com%2fsystem%2fresources%2fpreviews%2f023%2f457%2f881%2flarge_2x%2fneural-network-tree-learning-artificial-intelligence-in-dark-background-generative-ai-photo.jpg&exph=1960&expw=2940&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=927F5E5CB9D271B1D68FBD6363D0A2F0&selectedIndex=31&itb=0
+        - listitem [ref=f3e370]:
+          - generic [ref=f3e371]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e373] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=Za5%2bOZUM&id=E1FF7B06D61C865C981A6912DD1321A2DF40C086&thid=OIP.Za5-OZUM3GVjVSg2BjHI9QHaF_&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fmonochrome-neural-brain-design-glowing-white-nodes-dark-connections-symbolizing-data-processing-network-visualization-ai-346261881.jpg&exph=1295&expw=1600&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=10CCBAAC374817341953132DFA650128&selectedIndex=32&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e375]
+            - generic [ref=f3e376]:
+              - link "Monochrome Neural Brain Design with Glowing White Nodes and Dark ..." [ref=f3e377] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=Za5%2bOZUM&id=E1FF7B06D61C865C981A6912DD1321A2DF40C086&thid=OIP.Za5-OZUM3GVjVSg2BjHI9QHaF_&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fmonochrome-neural-brain-design-glowing-white-nodes-dark-connections-symbolizing-data-processing-network-visualization-ai-346261881.jpg&exph=1295&expw=1600&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=10CCBAAC374817341953132DFA650128&selectedIndex=32&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Monochrome Neural Brain Design with Glowing White Nodes and Dar…" [ref=f3e378] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=Za5%2bOZUM&id=E1FF7B06D61C865C981A6912DD1321A2DF40C086&thid=OIP.Za5-OZUM3GVjVSg2BjHI9QHaF_&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fz%2fmonochrome-neural-brain-design-glowing-white-nodes-dark-connections-symbolizing-data-processing-network-visualization-ai-346261881.jpg&exph=1295&expw=1600&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=10CCBAAC374817341953132DFA650128&selectedIndex=32&itb=0
+        - listitem [ref=f3e379]:
+          - generic [ref=f3e380]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e382] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=3PH5I6bc&id=7978474E59B2778086BFE54826AD93980FA73073&thid=OIP.3PH5I6bcY96hSlNoFEdcgQHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fminimalist-neural-network-diagram-abstract-brain-nodes-ai-generated-sleek-ai-generated-image-minimalist-neural-network-410444175.jpg%3fw%3d992&exph=567&expw=992&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=98837CD4491C5C2D82943B1C6BF646D8&selectedIndex=33&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e384]
+            - generic [ref=f3e385]:
+              - link "Minimalist Neural Network Diagram with Abstract Brain Nodes (AI ..." [ref=f3e386] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=3PH5I6bc&id=7978474E59B2778086BFE54826AD93980FA73073&thid=OIP.3PH5I6bcY96hSlNoFEdcgQHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fminimalist-neural-network-diagram-abstract-brain-nodes-ai-generated-sleek-ai-generated-image-minimalist-neural-network-410444175.jpg%3fw%3d992&exph=567&expw=992&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=98837CD4491C5C2D82943B1C6BF646D8&selectedIndex=33&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "Minimalist Neural Network Diagram with Abstract Brain Nodes (AI ..." [ref=f3e387] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=3PH5I6bc&id=7978474E59B2778086BFE54826AD93980FA73073&thid=OIP.3PH5I6bcY96hSlNoFEdcgQHaEO&mediaurl=https%3a%2f%2fthumbs.dreamstime.com%2fb%2fminimalist-neural-network-diagram-abstract-brain-nodes-ai-generated-sleek-ai-generated-image-minimalist-neural-network-410444175.jpg%3fw%3d992&exph=567&expw=992&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=98837CD4491C5C2D82943B1C6BF646D8&selectedIndex=33&itb=0
+        - listitem [ref=f3e388]:
+          - generic [ref=f3e389]:
+            - link "neural network visualization dark minimal 的图像结果" [ref=f3e391] [cursor=pointer]:
+              - /url: /images/search?view=detailV2&ccid=bguoHJzj&id=13C8CA44220545328FEC1FA56307FD8EFE7287BA&thid=OIP.bguoHJzjKgqxFhXoVIY3pQHaHa&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fai-neural-network-visualization_887930-1493.jpg&exph=626&expw=626&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=8E90E9132C0DC5F756F86FEE3CADC59A&selectedIndex=34&itb=0
+              - img "neural network visualization dark minimal 的图像结果" [ref=f3e393]
+            - generic [ref=f3e394]:
+              - link "AI Neural Network Visualization | Premium AI-generated image" [ref=f3e395] [cursor=pointer]:
+                - /url: /images/search?view=detailV2&ccid=bguoHJzj&id=13C8CA44220545328FEC1FA56307FD8EFE7287BA&thid=OIP.bguoHJzjKgqxFhXoVIY3pQHaHa&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fai-neural-network-visualization_887930-1493.jpg&exph=626&expw=626&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=8E90E9132C0DC5F756F86FEE3CADC59A&selectedIndex=34&itb=0
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link "AI Neural Network Visualization | Premium AI-g…" [ref=f3e396] [cursor=pointer]:
+                        - /url: /images/search?view=detailV2&ccid=bguoHJzj&id=13C8CA44220545328FEC1FA56307FD8EFE7287BA&thid=OIP.bguoHJzjKgqxFhXoVIY3pQHaHa&mediaurl=https%3a%2f%2fimg.freepik.com%2fpremium-photo%2fai-neural-network-visualization_887930-1493.jpg&exph=626&expw=626&q=neural+network+visualization+dark+minimal&FORM=IRPRST&ck=8E90E9132C0DC5F756F86FEE3CADC59A&selectedIndex=34&itb=0
+  - button "反馈" [ref=f3e399] [cursor=pointer]
+  - contentinfo [ref=f3e401]:
+    - generic [ref=f3e402]:
+      - generic [ref=f3e403]: © 2026 Microsoft
+      - list:
+        - listitem [ref=f3e404]:
+          - link "隐私" [ref=f3e405] [cursor=pointer]:
+            - /url: http://go.microsoft.com/fwlink/?LinkId=521839
+        - listitem [ref=f3e406]:
+          - link "条款" [ref=f3e407] [cursor=pointer]:
+            - /url: http://go.microsoft.com/fwlink/?LinkID=246338
+        - listitem [ref=f3e408]:
+          - link "广告" [ref=f3e409] [cursor=pointer]:
+            - /url: https://go.microsoft.com/fwlink/?linkid=868922
+        - listitem [ref=f3e410]:
+          - link "帮助" [ref=f3e411] [cursor=pointer]:
+            - /url: https://support.microsoft.com/topic/82d20721-2d6f-4012-a13d-d1910ccf203f&clcid=0x04
+        - listitem [ref=f3e412]:
+          - button "反馈" [ref=f3e413] [cursor=pointer]

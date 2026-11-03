@@ -1,0 +1,25 @@
+[     655ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal:8
+[     659ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal:8
+[     660ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal:8
+[     660ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal:8
+[     660ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal:8
+[     841ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal:8
+[    1024ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal:8
+[    1211ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1212ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1212ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1212ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1212ms] [VERBOSE] Rendering was performed in a subtree hidden by content-visibility. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1321ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1388ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1405ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1405ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1405ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1406ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1407ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1407ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1408ms] [ERROR] Permissions policy violation: unload is not allowed in this document. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:8
+[    1705ms] [INFO] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113 @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:0
+[    2775ms] [ERROR] Access to fetch at 'https://vcf.bing.com/bd/verify?IID=BdVerify&SFX=1&IG=A635E303F787446B88910B7973AE60C8' from origin 'https://cn.bing.com' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header has a value 'https://www.bing.com' that is not equal to the supplied origin. Have the server send the header with a valid value. @ https://cn.bing.com/images/search?q=neural+network+visualization+dark+minimal&first=1&cw=1177&ch=846:0
+[    2776ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://vcf.bing.com/bd/verify?IID=BdVerify&SFX=1&IG=A635E303F787446B88910B7973AE60C8:0
+[    2922ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://cn.bing.com/images/web/chlrate?partner=BD&status=bdvexc:0
