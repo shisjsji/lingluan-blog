@@ -41,6 +41,17 @@ function hashPhase(str) {
   return ((h >>> 0) % 1000) / 1000 * Math.PI * 2;
 }
 
+// 归一化哈希，用于把节点均匀铺在球面上
+function unitHash(str, salt) {
+  let h = 2166136261;
+  const s = str + '#' + salt;
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 10000) / 10000;
+}
+
 export class NeuronScene {
   constructor(canvas, { onHover, onSelect } = {}) {
     this.canvas = canvas;
@@ -297,10 +308,20 @@ export class NeuronScene {
     const span = Math.max(1, maxT - minT);
     for (const node of this.nodes) {
       const t = (Date.parse(node.createdAt) - minT) / span;
-      const r = 8 + t * 26;
-      const [x, y, z] = node.pos;
-      const len = Math.hypot(x, y, z) || 1;
-      node.pos = [(x / len) * r, (y / len) * r, (z / len) * r];
+      const r = 9 + t * 25;
+
+      // 方向由 uid 均匀铺开（同一项目内标签高度重复，若按标签聚类会全叠在一起）
+      const u = unitHash(node.uid, 'u');
+      const v = unitHash(node.uid, 'v');
+      const theta = u * Math.PI * 2;
+      const phi = Math.acos(2 * v - 1);
+
+      // 同标签做一点点靠拢，保留簇感但不重叠
+      const tagBias = unitHash((node.tags && node.tags[0]) || 'misc', 'b') * 0.35;
+      const th = theta + (tagBias - 0.175) * 0.6;
+      const sinPhi = Math.sin(phi);
+
+      node.pos = [r * sinPhi * Math.cos(th), r * Math.cos(phi) * 0.82, r * sinPhi * Math.sin(th)];
     }
 
     this.timeSpan = { min: minT, max: maxT };
