@@ -444,3 +444,104 @@ input:focus-visible {
 .mini-profile img {
   border-radius: 50%;
 }
+
+/* ---------- 首页 token 用量 ---------- */
+
+.token-widget {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 0 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.token-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--panel) 60%, transparent);
+  transition: 0.18s ease;
+  min-width: 0;
+}
+
+.token-cell:hover {
+  border-color: var(--accent);
+}
+
+.token-label {
+  font-size: 11px;
+  color: var(--muted);
+  flex: none;
+}
+
+.token-value {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.token-unit {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  margin-left: auto;
+}
+
+.token-note {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+  flex: none;
+  max-width: 200px;
+}
+
+.token-note .mono {
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+  .token-widget {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .token-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .token-cell {
+    padding: 9px 12px;
+  }
+
+  .token-value {
+    font-size: 17px;
+  }
+
+  .token-note {
+    flex-direction: row;
+    justify-content: space-between;
+    max-width: none;
+    text-align: left;
+  }
+}

@@ -172,6 +172,8 @@ function HomePage() {
       <div className="stats-note"><span className="mono">CURRENTLY</span><span>信息安全技术 · 大一</span></div>
     </section>
 
+    <TokenWidget />
+
     <div className="page-wrap home-contact"><ContactWidget /></div>
 
     <section className="home-guestbook page-wrap">
@@ -224,6 +226,47 @@ function Skill({ title, detail, icon: Icon }) { return <div className="skill-row
 function TimelineItem({ year, title, detail, active }) { return <div className={`timeline-item ${active ? 'active' : ''}`}><span className="timeline-dot" /><span className="timeline-year">{year}</span><div><h3>{title}</h3><p>{detail}</p></div></div> }
 
 function PageIntro({ kicker, title, intro }) { return <Reveal className="page-intro"><span className="section-kicker">{kicker}</span><h1>{title}</h1><p>{intro}</p></Reveal> }
+
+function formatTokens(n) {
+  if (!n) return '0'
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
+  return String(n)
+}
+
+function TokenWidget() {
+  const [data, setData] = useState(null)
+  useEffect(() => {
+    fetch('/neural-api/tokens')
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.empty) setData(d) })
+      .catch(() => {})
+  }, [])
+  if (!data) return null
+  const cells = [
+    { label: '今日', value: data.today?.total || 0 },
+    { label: '本月', value: data.month?.total || 0 },
+    { label: '历史总量', value: data.all?.total || 0 },
+  ]
+  return (
+    <section className="token-widget page-wrap" aria-label="模型 token 消耗">
+      <div className="token-grid">
+        {cells.map((cell) => (
+          <div className="token-cell" key={cell.label}>
+            <span className="token-label">{cell.label}</span>
+            <strong className="token-value">{formatTokens(cell.value)}</strong>
+            <span className="token-unit">tokens</span>
+          </div>
+        ))}
+      </div>
+      <div className="token-note">
+        <span className="mono">MODEL TOKEN USAGE</span>
+        {data.snapshotAt && <span className="mono">更新于 {new Date(data.snapshotAt).toLocaleString('zh-CN', { hour12: false })}</span>}
+      </div>
+    </section>
+  )
+}
 
 function ContactWidget() {
   return <section className="contact-widget" aria-label="联系方式">

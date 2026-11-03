@@ -55,6 +55,12 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_synapses_source ON synapses(source);
   CREATE INDEX IF NOT EXISTS idx_synapses_target ON synapses(target);
+
+  CREATE TABLE IF NOT EXISTS token_stats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
 `);
 
 const insertNeuron = db.prepare(`
@@ -325,8 +331,17 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (p === '/tokens' && req.method === 'GET') {
+      const row = db.prepare('SELECT payload, created_at FROM token_stats ORDER BY id DESC LIMIT 1').get();
+      if (!row) {
+        sendJSON(res, 200, { ok: true, empty: true });
+        return;
+      }
+      sendJSON(res, 200, { ok: true, ...JSON.parse(row.payload), snapshotAt: row.created_at });
+      return;
+    }
+
     if (p === '/scope' && req.method === 'GET') {
-      // 两级归属：大类 → 项目
       const rows = db.prepare('SELECT category, project, COUNT(*) AS n FROM neurons GROUP BY category, project').all();
       const map = new Map();
       for (const r of rows) {
@@ -405,6 +420,22 @@ const server = http.createServer(async (req, res) => {
     // ---- 以下需要鉴权 ----
     if (!authed(req)) {
       sendJSON(res, 401, { ok: false, error: '未授权：需要 Bearer token' });
+      return;
+    }
+
+    if (p === '/tokens' && req.method === 'POST') {
+      const raw = await readBody(req);
+      let payload;
+      try {
+        payload = JSON.parse(raw.toString('utf8'));
+      } catch {
+        sendJSON(res, 400, { ok: false, error: 'JSON 格式错误' });
+        return;
+      }
+      db.prepare('INSERT INTO token_stats (payload, created_at) VALUES (?, ?)').run(JSON.stringify(payload), new Date().toISOString());
+      // 只保留最近 200 次快照
+      db.prepare('DELETE FROM token_stats WHERE id NOT IN (SELECT id FROM token_stats ORDER BY id DESC LIMIT 200)').run();
+      sendJSON(res, 200, { ok: true });
       return;
     }
 

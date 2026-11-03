@@ -16,7 +16,14 @@ const DB_PATH = process.env.MIMO_DB || path.join(HOME, '.local/share/mimocode/mi
 const MD_DIR = process.env.MEMORY_MD_DIR || path.join(HOME, '.local/share/mimocode/neural-memory');
 const STATE_PATH = path.join(MD_DIR, '.sync-state.json');
 const API = process.env.NEURAL_API || 'https://lingluandf.online/neural-api';
-const TOKEN = process.env.NEURAL_TOKEN || '';
+const TOKEN = process.env.NEURAL_TOKEN || (() => {
+  // 定时任务里没有环境变量，回退到本地令牌文件
+  try {
+    return fs.readFileSync(path.join(HOME, '.neural-token'), 'utf8').trim();
+  } catch {
+    return '';
+  }
+})();
 
 const args = process.argv.slice(2);
 const FULL = args.includes('--full');
