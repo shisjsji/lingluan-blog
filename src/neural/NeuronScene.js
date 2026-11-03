@@ -66,8 +66,8 @@ export class NeuronScene {
     this.disposed = false;
 
     this.clock = new THREE.Clock();
-    this.rotation = { x: 0.18, y: 0 };
-    this.targetRotation = { x: 0.18, y: 0 };
+    this.rotation = { x: 0.92, y: 0 };
+    this.targetRotation = { x: 0.92, y: 0 };
     this.distance = 78;
     this.targetDistance = 78;
     this.dragging = false;
@@ -208,7 +208,7 @@ export class NeuronScene {
     const layers = [
       { inner: 'rgba(126,98,214,0.5)', mid: 'rgba(74,52,150,0.16)', size: 165, pos: [0, 0, 0], op: 0.5 },
       { inner: 'rgba(84,126,200,0.42)', mid: 'rgba(40,74,138,0.13)', size: 120, pos: [34, -8, -26], op: 0.42 },
-      { inner: 'rgba(206,124,152,0.32)', mid: 'rgba(146,62,94,0.11)', size: 96, pos: [-42, 14, 22], op: 0.36 },
+      { inner: 'rgba(150,120,215,0.22)', mid: 'rgba(92,64,150,0.08)', size: 112, pos: [-42, 10, 22], op: 0.26 },
     ];
     this.nebulaSprites = [];
     for (const layer of layers) {
@@ -239,7 +239,7 @@ export class NeuronScene {
       opacity: 0.85,
     });
     const core = new THREE.Sprite(mat);
-    core.scale.set(22, 22, 1);
+    core.scale.set(30, 30, 1);
     this.group.add(core);
     this.core = core;
   }
@@ -333,7 +333,7 @@ export class NeuronScene {
     }
     if (this.lineMesh) {
       this.lineMesh.material.color.copy(theme.edge);
-      this.lineMesh.material.opacity = this.dark ? 0.4 : 0.5;
+      this.lineMesh.material.opacity = this.dark ? 0.2 : 0.36;
     }
     if (this.warmLineMesh) {
       this.warmLineMesh.material.color.copy(theme.edgeWarm);
@@ -518,7 +518,7 @@ export class NeuronScene {
 
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const mat = new THREE.LineBasicMaterial({ color: this.dark ? DARK.edge : LIGHT.edge, transparent: true, opacity: this.dark ? 0.4 : 0.5 });
+    const mat = new THREE.LineBasicMaterial({ color: this.dark ? DARK.edge : LIGHT.edge, transparent: true, opacity: this.dark ? 0.2 : 0.36 });
     const lines = new THREE.LineSegments(geom, mat);
     lines.frustumCulled = false;
     this.group.add(lines);
@@ -637,7 +637,7 @@ export class NeuronScene {
   }
 
   resetView() {
-    this.targetRotation = { x: 0.18, y: 0 };
+    this.targetRotation = { x: 0.92, y: 0 };
     this.targetDistance = 78;
     this.autoSpin = true;
   }
