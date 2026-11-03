@@ -8,28 +8,28 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 const DARK = {
   bg: 0x07090d,
-  nodeBase: new THREE.Color('#43505c'),
-  nodeWarm: new THREE.Color('#f08a68'),
-  nodeCool: new THREE.Color('#7fb3c8'),
-  edge: new THREE.Color('#2c3742'),
-  edgeWarm: new THREE.Color('#8a4632'),
-  bloom: 1.15,
-  bloomRadius: 0.72,
-  bloomThreshold: 0.18,
-  fog: 0.028,
+  nodeBase: new THREE.Color('#5f7482'),
+  nodeWarm: new THREE.Color('#ffa07a'),
+  nodeCool: new THREE.Color('#9fd0e4'),
+  edge: new THREE.Color('#3f4e5a'),
+  edgeWarm: new THREE.Color('#a85a40'),
+  bloom: 1.35,
+  bloomRadius: 0.8,
+  bloomThreshold: 0.08,
+  fog: 0.0075,
 };
 
 const LIGHT = {
   bg: 0xf2f5f6,
-  nodeBase: new THREE.Color('#2b333a'),
+  nodeBase: new THREE.Color('#39434a'),
   nodeWarm: new THREE.Color('#b54b35'),
-  nodeCool: new THREE.Color('#5d7f8c'),
-  edge: new THREE.Color('#9aa6ac'),
+  nodeCool: new THREE.Color('#4f7382'),
+  edge: new THREE.Color('#8e9ba2'),
   edgeWarm: new THREE.Color('#c07a66'),
-  bloom: 0.28,
+  bloom: 0.22,
   bloomRadius: 0.5,
-  bloomThreshold: 0.62,
-  fog: 0.012,
+  bloomThreshold: 0.72,
+  fog: 0.005,
 };
 
 function hashPhase(str) {
@@ -73,8 +73,8 @@ export class NeuronScene {
   _initRenderer() {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    // ACES 会把发光压暗，这里让颜色直出，靠 bloom 做光晕
+    this.renderer.toneMapping = THREE.NoToneMapping;
     this.resize();
   }
 
@@ -169,7 +169,6 @@ export class NeuronScene {
     const theme = dark ? DARK : LIGHT;
     this.scene.background = new THREE.Color(theme.bg);
     this.scene.fog = new THREE.FogExp2(theme.bg, theme.fog);
-    this.renderer.toneMappingExposure = dark ? 1.05 : 0.92;
     this.bloom.strength = theme.bloom;
     this.bloom.radius = theme.bloomRadius;
     this.bloom.threshold = theme.bloomThreshold;
@@ -185,7 +184,7 @@ export class NeuronScene {
     }
     if (this.lineMesh) {
       this.lineMesh.material.color.copy(theme.edge);
-      this.lineMesh.material.opacity = this.dark ? 0.5 : 0.55;
+      this.lineMesh.material.opacity = this.dark ? 0.68 : 0.62;
     }
     if (this.warmLineMesh) {
       this.warmLineMesh.material.color.copy(theme.edgeWarm);
@@ -202,7 +201,13 @@ export class NeuronScene {
   }
 
   setData(nodes, edges) {
+    // 活跃度：越新的神经元越亮，按天指数衰减（50 天半衰期）
+    const now = Date.now();
     this.nodes = nodes.slice();
+    for (const node of this.nodes) {
+      const days = (now - Date.parse(node.createdAt)) / 86400000;
+      node.heatRatio = Math.exp(-Math.max(0, days) / 50);
+    }
     this.edges = edges;
     this._buildNodes();
     this._buildEdges();
@@ -282,7 +287,7 @@ export class NeuronScene {
 
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const mat = new THREE.LineBasicMaterial({ color: this.dark ? DARK.edge : LIGHT.edge, transparent: true, opacity: this.dark ? 0.5 : 0.55 });
+    const mat = new THREE.LineBasicMaterial({ color: this.dark ? DARK.edge : LIGHT.edge, transparent: true, opacity: this.dark ? 0.68 : 0.62 });
     const lines = new THREE.LineSegments(geom, mat);
     lines.frustumCulled = false;
     this.group.add(lines);
