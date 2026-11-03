@@ -68,8 +68,8 @@ export class NeuronScene {
     this.clock = new THREE.Clock();
     this.rotation = { x: 0.92, y: 0 };
     this.targetRotation = { x: 0.92, y: 0 };
-    this.distance = 78;
-    this.targetDistance = 78;
+    this.distance = 54;
+    this.targetDistance = 54;
     this.dragging = false;
     this.lastPointer = { x: 0, y: 0 };
     this.pointerNDC = new THREE.Vector2(-10, -10);
@@ -236,10 +236,10 @@ export class NeuronScene {
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
-      opacity: 0.85,
+      opacity: 0.6,
     });
     const core = new THREE.Sprite(mat);
-    core.scale.set(30, 30, 1);
+    core.scale.set(20, 20, 1);
     this.group.add(core);
     this.core = core;
   }
@@ -355,7 +355,7 @@ export class NeuronScene {
       }
     }
     if (this.core) {
-      this.core.material.opacity = this.dark ? 0.85 : 0.2;
+      this.core.material.opacity = this.dark ? 0.6 : 0.18;
     }
   }
 
@@ -395,11 +395,11 @@ export class NeuronScene {
       // 两条旋臂：时间越新角度偏移越大，形成螺旋
       const arm = Math.floor(unitHash(node.uid, 'arm') * 2) * Math.PI;
       const tagBias = unitHash((node.tags && node.tags[0]) || 'misc', 'b') * 0.5;
-      const th = u * 0.6 + arm + t * 2.3 + tagBias;
+      const th = u * 0.22 + arm + t * 4.4 + tagBias * 0.5;
 
       const sinPhi = Math.sin(phi);
       // 压扁成盘状，更像银河
-      node.pos = [r * sinPhi * Math.cos(th), r * Math.cos(phi) * 0.34, r * sinPhi * Math.sin(th)];
+      node.pos = [r * sinPhi * Math.cos(th), r * Math.cos(phi) * 0.24, r * sinPhi * Math.sin(th)];
     }
 
     this.timeSpan = { min: minT, max: maxT };
@@ -638,7 +638,7 @@ export class NeuronScene {
 
   resetView() {
     this.targetRotation = { x: 0.92, y: 0 };
-    this.targetDistance = 78;
+    this.targetDistance = 54;
     this.autoSpin = true;
   }
 
