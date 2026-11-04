@@ -559,3 +559,229 @@ input:focus-visible {
 .note-row.is-plain .note-arrow {
   display: none;
 }
+
+/* ==========================================================================
+   整体视觉优化：项目作品图、论文独立页、hero 重构、动效与状态
+   ========================================================================== */
+
+/* ---------- 项目行：加宽的截图列 ---------- */
+
+.project-row {
+  grid-template-columns: 35px 92px 1fr auto 20px;
+  gap: 20px;
+  min-height: 124px;
+}
+
+.project-thumb {
+  width: 92px;
+  height: 62px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  display: block;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease;
+}
+
+.project-row:hover .project-thumb {
+  transform: scale(1.04);
+  border-color: var(--accent);
+}
+
+/* 没有截图的保持图标块，尺寸和截图对齐 */
+.project-icon {
+  width: 92px;
+  height: 62px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+/* ---------- 论文入口卡片 ---------- */
+
+.paper-entry {
+  display: block;
+  margin-top: 64px;
+  padding: 30px 34px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  transition: 0.22s ease;
+}
+
+.paper-entry:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.paper-entry-tag {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.paper-entry h2 {
+  font-size: var(--fs-xl);
+  line-height: 1.4;
+  margin: 12px 0 10px;
+  color: var(--text);
+}
+
+.paper-entry p {
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  color: var(--muted);
+  max-width: 640px;
+}
+
+.paper-entry-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  font-size: var(--fs-xs);
+  color: var(--accent);
+}
+
+/* ---------- 论文页 ---------- */
+
+.paper-body {
+  max-width: 720px;
+}
+
+.paper-lead {
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  color: var(--text);
+  margin-bottom: 40px;
+}
+
+.paper-section {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 20px;
+  padding: 30px 0;
+  border-top: 1px solid var(--line);
+}
+
+.paper-section:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+
+.paper-index {
+  font-size: var(--fs-2xs);
+  color: var(--accent);
+  padding-top: 7px;
+}
+
+.paper-section h2 {
+  font-size: var(--fs-xl);
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.paper-section p {
+  font-size: var(--fs-base);
+  line-height: 1.85;
+  color: var(--muted);
+}
+
+.paper-conclusion {
+  margin-top: 40px;
+  padding: 24px 28px;
+  border-left: 2px solid var(--accent);
+  background: var(--panel-soft);
+  border-radius: 0 10px 10px 0;
+  font-size: var(--fs-md);
+  line-height: 1.85;
+  color: var(--text);
+}
+
+/* ---------- 二期：hero 让标题做主 ---------- */
+
+.hero {
+  grid-template-columns: 1.18fr 0.82fr;
+  gap: var(--sp-8);
+}
+
+.hero-portrait {
+  width: min(304px, 100%);
+}
+
+.hero h1 {
+  font-size: clamp(40px, 4.8vw, 66px);
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+}
+
+.hero-copy {
+  padding-left: 0;
+}
+
+.hero-intro {
+  max-width: 470px;
+}
+
+/* ---------- 三期：统一的卡片状态与动效 ---------- */
+
+.contact-item,
+.paper-entry,
+.project-row,
+.note-row {
+  will-change: transform;
+}
+
+.contact-item:focus-visible,
+.paper-entry:focus-visible,
+.project-row:focus-visible,
+.note-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* 暗色模式下的作品图与卡片边界 */
+[data-theme='dark'] .project-thumb {
+  border-color: rgba(255, 255, 255, 0.1);
+  filter: brightness(0.92);
+}
+
+[data-theme='dark'] .project-row:hover .project-thumb {
+  filter: brightness(1);
+}
+
+[data-theme='dark'] .paper-entry {
+  background: var(--panel);
+}
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 800px) {
+  .project-row {
+    grid-template-columns: 22px 64px minmax(0, 1fr) 17px;
+    gap: 12px;
+  }
+
+  .project-thumb,
+  .project-icon {
+    width: 64px;
+    height: 46px;
+  }
+
+  .paper-entry {
+    padding: 22px 20px;
+    margin-top: 46px;
+  }
+
+  .paper-section {
+    grid-template-columns: 32px 1fr;
+    gap: 12px;
+    padding: 24px 0;
+  }
+
+  .hero-portrait {
+    width: min(240px, 72vw);
+  }
+}

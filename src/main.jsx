@@ -41,10 +41,9 @@ const profile = asset('images/avatar.jpg')
 const { about, notes, agentPaper } = siteContent
 
 const projects = [
-  { name: 'chaoxing-ai', type: 'Python · Windows 桌面端', detail: '超星学习通桌面客户端：自动播放、AI 答题、考试作答（Beta）与共享题库，开源免费。', state: '已上线', icon: BookOpen, tone: 'blue', url: 'https://chaoxingxxt.lingluandf.online/' },
+  { name: 'chaoxing-ai', type: 'Python · Windows 桌面端', detail: '超星学习通桌面客户端：自动播放、AI 答题、考试作答（Beta）与共享题库，开源免费。', state: '已上线', icon: BookOpen, tone: 'blue', url: 'https://chaoxingxxt.lingluandf.online/', image: 'images/projects/chaoxing-ai.jpg' },
   { name: 'AURORA-pro', type: 'Magisk · KernelSU', detail: '以设备原厂 Dolby XML 为基底的双扬声器调音模块，保留耳机、蓝牙与 USB 路线的原厂节点。', state: 'v5.7.0', icon: Layers3, tone: 'orange', url: 'https://github.com/shisjsji/AURORA-pro' },
-  { name: 'LumaCurve', type: 'Android 模块 · 二次开发', detail: '自适应亮屏与 AOD 状态调度（HyperLux 版本），在 LumaCurve 基础上做的二次开发。', state: 'v2.3.2', icon: Moon, tone: 'blue', url: 'https://github.com/shisjsji/LumaCurve' },
-  { name: 'ios_auto_brightness', type: 'Android 模块', detail: '把小米设备的自动亮度曲线改成更接近 iOS 的观感。', state: '已发布', icon: Sun, tone: 'green', url: 'https://github.com/shisjsji/ios_auto_brightness' },
+  { name: 'LumaCurve', type: 'Android · fork', detail: '适配 HyperOS 的自动亮度工具，跟随上游更新。', state: '跟随上游', icon: Moon, tone: 'blue', url: 'https://github.com/shisjsji/LumaCurve' },
   { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue', url: 'https://github.com/shisjsji' },
 ]
 
@@ -86,6 +85,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/notes" element={<NotesPage />} />
+          <Route path="/paper" element={<PaperPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route
             path="/neural"
@@ -290,13 +290,45 @@ function NotesPage() {
     <div className="content-admin-row"><span>内容保存在 GitHub，提交后自动更新网站。</span><a href={editorUrl('src/content/site-content.json')} target="_blank" rel="noreferrer">在线编辑笔记与记录 <ExternalLink size={14} /></a></div>
     <section className="notes-toolbar"><div className="filter-tabs">{categories.map((category) => <button key={category} className={active === category ? 'filter-tab active' : 'filter-tab'} onClick={() => setActive(category)}>{category}</button>)}</div><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索笔记" /></label></section>
     <section className="notes-page-list">{filtered.length ? filtered.map((note, index) => <NoteRow key={note.title} note={note} index={index} plain />) : <div className="empty-state"><ListFilter size={20} /><p>还没有找到这条记录。</p></div>}</section>
-    <article className="agent-paper"><h2>{agentPaper.title}</h2><p className="agent-paper-lead">{agentPaper.lead}</p><div className="agent-paper-grid">{agentPaper.sections.map((section, index) => <div key={section.title}><span>0{index + 1} / STUDY</span><h3>{section.title}</h3><p>{section.body}</p></div>)}</div><p className="agent-paper-conclusion"><strong>结论。</strong> {agentPaper.conclusion}</p></article>
+    <Link to="/paper" className="paper-entry">
+      <span className="paper-entry-tag mono">RESEARCH / 长篇</span>
+      <h2>{agentPaper.title}</h2>
+      <p>{agentPaper.lead.slice(0, 78)}…</p>
+      <span className="paper-entry-more">读完整篇 <ArrowUpRight size={15} /></span>
+    </Link>
     <div className="notes-footnote"><Command size={15} />更多笔记正在路上 <span>·</span> 最后更新于 2026.09</div>
   </div>
 }
 
+
+function PaperPage() {
+  return (
+    <div className="page-wrap inner-page paper-page">
+      <Link to="/notes" className="back-link"><ArrowLeft size={16} /> 回到笔记</Link>
+      <PageIntro
+        kicker="研究"
+        title={<>面向个人学习的<br /><em>Agent 协作方法</em></>}
+        intro="一份关于怎么让 AI 在自学里真正帮上忙的记录，写给以后会忘了自己怎么想的我。"
+      />
+      <article className="paper-body">
+        <p className="paper-lead">{agentPaper.lead}</p>
+        {agentPaper.sections.map((section, index) => (
+          <section className="paper-section" key={section.title}>
+            <span className="paper-index mono">0{index + 1}</span>
+            <div>
+              <h2>{section.title}</h2>
+              <p>{section.body}</p>
+            </div>
+          </section>
+        ))}
+        <p className="paper-conclusion">{agentPaper.conclusion}</p>
+      </article>
+    </div>
+  );
+}
+
 function ProjectsPage() {
-  return <div className="page-wrap inner-page"><PageIntro kicker="项目" title={<>把好奇心，<em>做成东西。</em></>} intro="一些还在生长的小项目。它们不一定完整，但都有清楚的起点。" /><section className="projects-list">{projects.map((project, index) => <a href={project.url} target="_blank" rel="noreferrer" className="project-row" key={project.name}><span className="project-number">0{index + 1}</span><div className={`project-icon ${project.tone}`}><project.icon size={21} /></div><div className="project-copy"><div className="project-title"><h2>{project.name}</h2><span>{project.type}</span></div><p>{project.detail}</p></div><span className="project-state"><span className="status-dot" />{project.state}</span><ArrowUpRight className="project-arrow" size={18} /></a>)}</section><section className="project-cta"><div><h2>有一个问题，<br /><em>想一起拆开吗？</em></h2></div><a href="https://github.com/shisjsji" target="_blank" rel="noreferrer" className="button button-primary">联系我 <ArrowUpRight size={16} /></a></section></div>
+  return <div className="page-wrap inner-page"><PageIntro kicker="项目" title={<>把好奇心，<em>做成东西。</em></>} intro="一些还在生长的小项目。它们不一定完整，但都有清楚的起点。" /><section className="projects-list">{projects.map((project, index) => <a href={project.url} target="_blank" rel="noreferrer" className="project-row" key={project.name}><span className="project-number">0{index + 1}</span>{project.image ? <img className="project-thumb" src={asset(project.image)} alt={`${project.name} 截图`} loading="lazy" /> : <div className={`project-icon ${project.tone}`}><project.icon size={21} /></div>}<div className="project-copy"><div className="project-title"><h2>{project.name}</h2><span>{project.type}</span></div><p>{project.detail}</p></div><span className="project-state"><span className="status-dot" />{project.state}</span><ArrowUpRight className="project-arrow" size={18} /></a>)}</section><section className="project-cta"><div><h2>有一个问题，<br /><em>想一起拆开吗？</em></h2></div><a href="https://github.com/shisjsji" target="_blank" rel="noreferrer" className="button button-primary">联系我 <ArrowUpRight size={16} /></a></section></div>
 }
 
 function GalleryPage() {
