@@ -116,7 +116,7 @@ export class NeuronScene {
 
   // 星系星尘：与神经元共用同一套旋臂骨架，让圆盘显得饱满
   _buildStardust() {
-    const COUNT = 7600;
+    const COUNT = 26000;
     const ARMS = 3;
     const SPIN = 0.75;
     const positions = new Float32Array(COUNT * 3);
@@ -141,7 +141,8 @@ export class NeuronScene {
       positions[i * 3 + 1] = gauss() * 2.2 * (1 - t * 0.78);
       positions[i * 3 + 2] = Math.sin(angle) * r;
 
-      sizes[i] = 0.55 + Math.random() * 1.5;
+      const bright = Math.random();
+      sizes[i] = bright > 0.94 ? 1.3 + Math.random() * 1.2 : 0.22 + Math.random() * 0.6;
       phases[i] = Math.random() * Math.PI * 2;
 
       // 越靠中心越暖白，外围偏冷蓝
@@ -354,19 +355,6 @@ export class NeuronScene {
       });
       this.nodeMesh.geometry.getAttribute('aColor').needsUpdate = true;
     }
-    if (this.lineMesh) {
-      this.lineMesh.material.color.copy(theme.edge);
-      this.lineMesh.material.opacity = this.dark ? 0.2 : 0.36;
-    }
-    if (this.warmLineMesh) {
-      this.warmLineMesh.material.color.copy(theme.edgeWarm);
-      this.warmLineMesh.material.opacity = this.dark ? 0.6 : 0.5;
-    }
-    if (this.sparkMesh) {
-      const u = this.sparkMesh.material.uniforms;
-      u.uColor.value.copy(this.dark ? theme.nodeCool : theme.nodeWarm);
-      u.uOpacity.value = this.dark ? 0.9 : 0.34;
-    }
     if (this.stardust) {
       const u = this.stardust.material.uniforms;
       u.uColor.value.copy(this.dark ? new THREE.Color('#8fb8d4') : new THREE.Color('#7d8b93'));
@@ -429,8 +417,6 @@ export class NeuronScene {
     this.timeSpan = { min: minT, max: maxT };
     this.edges = edges;
     this._buildNodes();
-    this._buildEdges();
-    this._buildSparks();
     this._applyColors();
     this.setTimeFilter(this.visibleUntil);
   }
@@ -520,125 +506,6 @@ export class NeuronScene {
     this._nodeVisible = visible;
   }
 
-  _buildEdges() {
-    const lineGeoms = [];
-    const positions = [];
-    const byUid = new Map(this.nodes.map((n) => [n.uid, n]));
-
-    for (const edge of this.edges) {
-      const a = byUid.get(edge.source);
-      const b = byUid.get(edge.target);
-      if (!a || !b) continue;
-      positions.push(a.pos[0], a.pos[1], a.pos[2], b.pos[0], b.pos[1], b.pos[2]);
-      lineGeoms.push(edge);
-    }
-
-    if (this.lineMesh) {
-      this.group.remove(this.lineMesh);
-      this.lineMesh.geometry.dispose();
-      this.lineMesh.material.dispose();
-    }
-    if (!positions.length) return;
-
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const mat = new THREE.LineBasicMaterial({ color: this.dark ? DARK.edge : LIGHT.edge, transparent: true, opacity: this.dark ? 0.2 : 0.36 });
-    const lines = new THREE.LineSegments(geom, mat);
-    lines.frustumCulled = false;
-    this.group.add(lines);
-    this.lineMesh = lines;
-    this.warmLineMesh = null;
-  }
-
-  // 突触流光：光点沿连线移动，位置全在着色器里算，不占 CPU
-  _buildSparks() {
-    if (this.sparkMesh) {
-      this.group.remove(this.sparkMesh);
-      this.sparkMesh.geometry.dispose();
-      this.sparkMesh.material.dispose();
-      this.sparkMesh = null;
-    }
-
-    const byUid = new Map(this.nodes.map((n) => [n.uid, n]));
-    const pairs = [];
-    for (const edge of this.edges) {
-      const a = byUid.get(edge.source);
-      const b = byUid.get(edge.target);
-      if (a && b) pairs.push([a, b]);
-    }
-    if (!pairs.length) return;
-
-    const count = Math.min(360, Math.max(48, pairs.length));
-    const start = new Float32Array(count * 3);
-    const end = new Float32Array(count * 3);
-    const phase = new Float32Array(count);
-    const speed = new Float32Array(count);
-
-    for (let i = 0; i < count; i += 1) {
-      const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
-      start.set(a.pos, i * 3);
-      end.set(b.pos, i * 3);
-      phase[i] = Math.random();
-      speed[i] = 0.07 + Math.random() * 0.2;
-    }
-
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.BufferAttribute(start.slice(), 3));
-    geom.setAttribute('aStart', new THREE.BufferAttribute(start, 3));
-    geom.setAttribute('aEnd', new THREE.BufferAttribute(end, 3));
-    geom.setAttribute('aPhase', new THREE.BufferAttribute(phase, 1));
-    geom.setAttribute('aSpeed', new THREE.BufferAttribute(speed, 1));
-
-    const mat = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: this.uniforms.uTime,
-        uColor: { value: new THREE.Color('#9fd0e4') },
-        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-        uSize: { value: 2.8 },
-        uOpacity: { value: 0.9 },
-      },
-      vertexShader: `
-        attribute vec3 aStart;
-        attribute vec3 aEnd;
-        attribute float aPhase;
-        attribute float aSpeed;
-        uniform float uTime;
-        uniform float uPixelRatio;
-        uniform float uSize;
-        varying float vAlpha;
-        void main() {
-          float t = fract(uTime * aSpeed + aPhase);
-          vec3 p = mix(aStart, aEnd, t);
-          vAlpha = sin(t * 3.14159265);
-          vec4 mv = modelViewMatrix * vec4(p, 1.0);
-          gl_Position = projectionMatrix * mv;
-          gl_PointSize = uSize * uPixelRatio * (240.0 / -mv.z);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 uColor;
-        uniform float uOpacity;
-        varying float vAlpha;
-        void main() {
-          vec2 c = gl_PointCoord - 0.5;
-          float d = length(c);
-          if (d > 0.5) discard;
-          float a = smoothstep(0.5, 0.0, d) * vAlpha * uOpacity;
-          gl_FragColor = vec4(uColor, a);
-        }
-      `,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-
-    const sparks = new THREE.Points(geom, mat);
-    sparks.frustumCulled = false;
-    this.group.add(sparks);
-    this.sparkMesh = sparks;
-  }
-
-  // 时间轴回放：只显示该时间点之前诞生的神经元
   setTimeFilter(timestamp) {
     this.visibleUntil = timestamp;
     if (!this.nodeMesh || !this._nodeVisible) return;
@@ -713,10 +580,6 @@ export class NeuronScene {
     el.removeEventListener('click', this._onClick);
     this.nodeMesh?.geometry.dispose();
     this.nodeMesh?.material.dispose();
-    this.lineMesh?.geometry.dispose();
-    this.lineMesh?.material.dispose();
-    this.sparkMesh?.geometry.dispose();
-    this.sparkMesh?.material.dispose();
     this.stardust?.geometry.dispose();
     this.stardust?.material.dispose();
     // 星云与星系核持有 canvas 纹理，不释放会在反复切项目时持续占用显存
