@@ -80,6 +80,19 @@ rsync -a --delete dist/ /var/www/lingluan-blog/
 
 无。域名解析、HTTPS 证书、端口分流均已完成。
 
+## 站点清单（新增站点必须维护）
+
+用户的所有对外站点、后台、面板都记在一份清单里，供他随时查阅：
+
+- **数据源**：`~/.local/share/mimocode/sites.json`（含密码，不进仓库）
+- **渲染产物**：桌面 `网站清单.txt`
+- **生成命令**：`node tools/sites.mjs render`
+- **终端速查**：`node tools/sites.mjs list`
+
+**新增或修改任何对外可访问的站点时**（新子域名、新后台、新的独立服务、端口变化），必须同步更新 `sites.json` 并重新渲染。不要只手改桌面的 TXT —— 它会被下一次渲染整份覆盖。
+
+每条站点记录包含：`name`、`url`、`what`（一句话说明用途）、`extras`（后台地址、密码、端口、仓库等键值对）、`tags`。
+
 ## 域名与端口分流
 
 - 站点域名：`lingluandf.online` 和 `www.lingluandf.online`，A 记录指向本机
