@@ -939,3 +939,237 @@ input:focus-visible {
     justify-content: flex-start;
   }
 }
+
+/* ==========================================================================
+   留言：无门槛表单 + 轻声引导卡片
+   ========================================================================== */
+
+.guestbook-count {
+  font-size: var(--fs-2xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.guestbook-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 26px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.guestbook-name,
+.guestbook-body {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color 0.16s ease;
+}
+
+.guestbook-body {
+  resize: vertical;
+  min-height: 62px;
+  line-height: 1.65;
+}
+
+.guestbook-name:focus,
+.guestbook-body:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.guestbook-form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guestbook-counter {
+  font-size: var(--fs-2xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.guestbook-form-foot .button {
+  min-height: 36px;
+  font-size: var(--fs-xs);
+}
+
+.guestbook-form-foot .button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.guestbook-error,
+.guestbook-ok {
+  margin: 0;
+  font-size: var(--fs-2xs);
+}
+
+.guestbook-error {
+  color: #b4453a;
+}
+
+[data-theme='dark'] .guestbook-error {
+  color: #f08a68;
+}
+
+.guestbook-ok {
+  color: #3f7d54;
+}
+
+[data-theme='dark'] .guestbook-ok {
+  color: #6fdc98;
+}
+
+.guestbook-retry {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0 4px;
+}
+
+/* 留言条目 */
+.guestbook-entry {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.guestbook-entry:last-child {
+  border-bottom: 0;
+}
+
+.guestbook-entry-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.guestbook-entry-meta span {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.guestbook-entry-meta time {
+  font-size: var(--fs-2xs);
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+}
+
+.guestbook-entry p {
+  font-size: var(--fs-base);
+  line-height: 1.75;
+  color: var(--text);
+  word-break: break-word;
+}
+
+/* ---------- 轻声引导卡片 ---------- */
+
+.say-hi {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 296px;
+  z-index: 40;
+  padding: 18px 20px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 16px 40px rgba(30, 44, 50, 0.14);
+  animation: say-hi-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-theme='dark'] .say-hi {
+  background: #20282c;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes say-hi-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.say-hi-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.say-hi-close:hover {
+  color: var(--accent);
+  background: var(--panel-soft);
+}
+
+.say-hi-title {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  padding-right: 24px;
+}
+
+.say-hi-body {
+  font-size: var(--fs-xs);
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.say-hi-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.say-hi-later {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-2xs);
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.say-hi-later:hover {
+  color: var(--text);
+}
+
+@media (max-width: 800px) {
+  .say-hi {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+
+  .guestbook-form {
+    padding: 13px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .say-hi { animation: none; }
+}

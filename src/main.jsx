@@ -17,6 +17,7 @@ import {
   Layers3,
   ListFilter,
   Menu,
+  MessageSquare,
   Moon,
   MoveUpRight,
   RefreshCw,
@@ -101,6 +102,7 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
+      <MessageNudge />
       <SiteFooter />
     </div>
   )
@@ -122,6 +124,7 @@ function Header({ dark, setDark }) {
     { to: '/notes', label: '笔记', icon: BookOpen },
     { to: '/projects', label: '项目', icon: BriefcaseBusiness },
     { to: '/neural', label: '神经元', icon: Brain },
+    { to: '/guestbook', label: '留言', icon: MessageSquare },
   ]
   return (
     <header className="topbar">
@@ -380,35 +383,178 @@ function GuestbookPage() {
 }
 
 function GuestbookWidget({ compact = false }) {
-  const [comments, setComments] = useState([])
+  const [items, setItems] = useState([])
   const [status, setStatus] = useState('loading')
+  const [name, setName] = useState('')
+  const [body, setBody] = useState('')
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
+  const [justSent, setJustSent] = useState(false)
+
+  const load = () => {
+    setStatus('loading')
+    fetch('/neural-api/messages?limit=50')
+      .then((r) => r.json())
+      .then((d) => {
+        setItems(d.items || [])
+        setStatus('ready')
+      })
+      .catch(() => setStatus('error'))
+  }
+
+  useEffect(() => { load() }, [])
+
+  const submit = async (event) => {
+    event.preventDefault()
+    const text = body.trim()
+    if (!text) { setError('写点什么再发吧'); return }
+    if (sending) return
+    setSending(true)
+    setError('')
+    try {
+      const res = await fetch('/neural-api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), body: text }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setItems((prev) => [data.item, ...prev])
+        setBody('')
+        setJustSent(true)
+        setTimeout(() => setJustSent(false), 4000)
+      } else {
+        setError(data.error || '没发出去，稍后再试')
+      }
+    } catch {
+      setError('网络不通，稍后再试')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <section className={`guestbook-widget ${compact ? 'is-compact' : ''}`}>
+      <div className="guestbook-heading">
+        <div>
+          <span className="section-kicker">SAY SOMETHING</span>
+          <h2>留下一句话</h2>
+        </div>
+        <span className="guestbook-count">{status === 'ready' ? `${items.length} 条` : ''}</span>
+      </div>
+      <p className="guestbook-disclaimer">不用登录，写点什么都行。发出去之后作者能看到，也会公开展示。</p>
+
+      <form className="guestbook-form" onSubmit={submit}>
+        <input
+          className="guestbook-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="怎么称呼你（不填就是路过的）"
+          maxLength={20}
+        />
+        <textarea
+          className="guestbook-body"
+          value={body}
+          onChange={(e) => { setBody(e.target.value); if (error) setError('') }}
+          placeholder="随便说一句…"
+          maxLength={50}
+          rows={compact ? 2 : 3}
+        />
+        <div className="guestbook-form-foot">
+          <span className="guestbook-counter">{body.length}/50</span>
+          <button type="submit" className="button button-primary" disabled={sending || !body.trim()}>
+            {sending ? '发送中…' : '说一句'}
+          </button>
+        </div>
+        {error && <p className="guestbook-error">{error}</p>}
+        {justSent && <p className="guestbook-ok">收到了，谢谢。</p>}
+      </form>
+
+      {status === 'loading' && <div className="guestbook-state">正在读取…</div>}
+      {status === 'error' && (
+        <div className="guestbook-state">
+          留言没读出来。<button className="guestbook-retry" onClick={load}>重试</button>
+        </div>
+      )}
+      {status === 'ready' && items.length === 0 && (
+        <div className="guestbook-state">还没有人说话，第一句留给你。</div>
+      )}
+      {status === 'ready' && items.length > 0 && (
+        <ul className="guestbook-list">
+          {items.map((item) => (
+            <li className="guestbook-entry" key={item.id}>
+              <div className="guestbook-entry-meta">
+                <span>{item.name || '路过的'}</span>
+                <time dateTime={item.createdAt}>
+                  {new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric' }).format(new Date(item.createdAt))}
+                </time>
+              </div>
+              <p>{item.body}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+// 访客读了一阵之后再轻声问一句，不打断阅读；关掉后一个月不再出现
+function MessageNudge() {
+  const [show, setShow] = useState(false)
+  const { pathname } = useLocation()
+
   useEffect(() => {
-    const controller = new AbortController()
-    fetch('https://api.github.com/repos/shisjsji/lingluan-blog/issues/1/comments?per_page=8', {
-      headers: { Accept: 'application/vnd.github+json' },
-      signal: controller.signal,
-    }).then((response) => {
-      if (!response.ok) throw new Error('留言暂时无法读取')
-      return response.json()
-    }).then((items) => {
-      setComments(items
-        .filter((item) => item.body?.trim() && item.user?.login)
-        .sort((left, right) => Date.parse(right.created_at) - Date.parse(left.created_at))
-        .slice(0, 8))
-      setStatus('ready')
-    }).catch((error) => {
-      if (error.name !== 'AbortError') setStatus('error')
-    })
-    return () => controller.abort()
-  }, [])
-  return <section className={`guestbook-widget ${compact ? 'is-compact' : ''}`}>
-    <div className="guestbook-heading"><div><span className="section-kicker">OPEN NOTES</span><h2>访客留言</h2></div><a className="button button-quiet" href={`${guestbookIssueUrl}#new_comment_field`} target="_blank" rel="noreferrer">写一句话 <ExternalLink size={14} /></a></div>
-    <p className="guestbook-disclaimer">留言公开显示 GitHub 用户名与内容，请勿填写隐私信息。</p>
-    {status === 'loading' && <div className="guestbook-state">正在读取留言…</div>}
-    {status === 'error' && <div className="guestbook-state">暂时无法读取留言。<a href={guestbookIssueUrl} target="_blank" rel="noreferrer">前往 GitHub 查看和留言 <ArrowUpRight size={14} /></a></div>}
-    {status === 'ready' && comments.length === 0 && <div className="guestbook-state">还没有留言，来写下第一句吧。</div>}
-    {status === 'ready' && comments.length > 0 && <div className="guestbook-list">{comments.map((comment) => <article className="guestbook-entry" key={comment.id}><div className="guestbook-entry-meta"><a href={`https://github.com/${encodeURIComponent(comment.user.login)}`} target="_blank" rel="noreferrer">@{comment.user.login}</a><time dateTime={comment.created_at}>{new Intl.DateTimeFormat('zh-CN', { month: 'short', day: 'numeric' }).format(new Date(comment.created_at))}</time></div><p>{comment.body.length > 700 ? `${comment.body.slice(0, 700)}…` : comment.body}</p></article>)}</div>}
-  </section>
+    if (pathname === '/neural' || pathname === '/guestbook') return undefined
+    try {
+      if (Date.now() < Number(localStorage.getItem('say-hi-until') || 0)) return undefined
+    } catch { /* 隐私模式读不到存储，照常显示一次 */ }
+
+    const start = Date.now()
+    let scrolled = false
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      if (max > 0 && window.scrollY / max > 0.4) scrolled = true
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    const timer = setInterval(() => {
+      if (Date.now() - start >= 25000 && (scrolled || pathname === '/')) {
+        setShow(true)
+        clearInterval(timer)
+      }
+    }, 2000)
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      clearInterval(timer)
+    }
+  }, [pathname])
+
+  const dismiss = () => {
+    setShow(false)
+    try {
+      localStorage.setItem('say-hi-until', String(Date.now() + 30 * 24 * 60 * 60 * 1000))
+    } catch { /* 存不了就算了 */ }
+  }
+
+  if (!show) return null
+
+  return (
+    <aside className="say-hi" role="complementary" aria-label="留言邀请">
+      <button className="say-hi-close" onClick={dismiss} aria-label="关闭">
+        <X size={14} />
+      </button>
+      <p className="say-hi-title">路过的话，说句话吧</p>
+      <p className="say-hi-body">不用登录。想吐槽、想打招呼、发现哪里写错了，都可以。</p>
+      <div className="say-hi-actions">
+        <Link to="/guestbook" className="button button-primary" onClick={dismiss} style={{ minHeight: 34, fontSize: 12 }}>
+          去留一句
+        </Link>
+        <button className="say-hi-later" onClick={dismiss}>下次吧</button>
+      </div>
+    </aside>
+  )
 }
 
 function NotFoundPage() { const navigate = useNavigate(); return <div className="not-found page-wrap"><span className="section-kicker">404 / LOST IN THE WIND</span><h1>这页还没有<br /><em>被写出来。</em></h1><p>也许它正在某个草稿里等待下一次打开。</p><button className="button button-primary" onClick={() => navigate('/')}>回到首页 <ArrowUpRight size={16} /></button></div> }

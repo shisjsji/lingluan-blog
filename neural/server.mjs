@@ -56,6 +56,16 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_synapses_source ON synapses(source);
   CREATE INDEX IF NOT EXISTS idx_synapses_target ON synapses(target);
 
+  CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL DEFAULT '',
+    body TEXT NOT NULL,
+    ip_hash TEXT NOT NULL DEFAULT '',
+    hidden INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
+
   CREATE TABLE IF NOT EXISTS knowledge (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     project TEXT NOT NULL DEFAULT '',
@@ -182,6 +192,18 @@ const upsertKnowledge = db.prepare(`
     status = excluded.status,
     updated_at = excluded.updated_at
 `);
+
+const insertMessage = db.prepare('INSERT INTO messages (name, body, ip_hash, created_at) VALUES (?, ?, ?, ?)');
+const MESSAGE_MAX = 50;          // 正文上限，按用户要求
+const MESSAGE_COOLDOWN = 10 * 60 * 1000; // 同一来源 10 分钟一条
+const messageRate = new Map();   // ip_hash -> 上次发言时间
+
+function clientIp(req) {
+  // nginx 反代后 remoteAddress 是 127.0.0.1，必须读 X-Real-IP
+  const forwarded = String(req.headers['x-real-ip'] || '').trim();
+  const raw = forwarded || req.socket.remoteAddress || '';
+  return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16);
+}
 
 const subscribers = new Set();
 
@@ -401,6 +423,57 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // 留言板：读和写都公开，写有频率与长度约束
+    if (p === '/messages' && req.method === 'GET') {
+      const limit = Math.min(100, Number(url.searchParams.get('limit')) || 50);
+      const rows = db
+        .prepare('SELECT id, name, body, created_at FROM messages WHERE hidden = 0 ORDER BY created_at DESC LIMIT ?')
+        .all(limit);
+      sendJSON(res, 200, {
+        ok: true,
+        total: db.prepare('SELECT COUNT(*) AS c FROM messages WHERE hidden = 0').get().c,
+        items: rows.map((r) => ({ id: r.id, name: r.name, body: r.body, createdAt: r.created_at })),
+      });
+      return;
+    }
+
+    if (p === '/messages' && req.method === 'POST') {
+      const raw = await readBody(req, 4096);
+      let payload;
+      try {
+        payload = JSON.parse(raw.toString('utf8'));
+      } catch {
+        sendJSON(res, 400, { ok: false, error: '格式不对' });
+        return;
+      }
+
+      const body = String(payload.body || '').trim();
+      const name = String(payload.name || '').trim().slice(0, 20);
+      if (!body) { sendJSON(res, 400, { ok: false, error: '写点什么再发吧' }); return; }
+      if (body.length > MESSAGE_MAX) {
+        sendJSON(res, 400, { ok: false, error: `最多 ${MESSAGE_MAX} 个字` });
+        return;
+      }
+      // 纯链接视为垃圾
+      const links = body.match(/https?:\/\//g) || [];
+      if (links.length >= 2) { sendJSON(res, 400, { ok: false, error: '内容里有太多链接' }); return; }
+
+      const ip = clientIp(req);
+      const now = Date.now();
+      const last = messageRate.get(ip) || 0;
+      if (now - last < MESSAGE_COOLDOWN) {
+        const wait = Math.ceil((MESSAGE_COOLDOWN - (now - last)) / 60000);
+        sendJSON(res, 429, { ok: false, error: `刚留过了，${wait} 分钟后再来` });
+        return;
+      }
+
+      const createdAt = new Date().toISOString();
+      const info = insertMessage.run(name, body, ip, createdAt);
+      messageRate.set(ip, now);
+      sendJSON(res, 200, { ok: true, item: { id: Number(info.lastInsertRowid), name, body, createdAt } });
+      return;
+    }
+
     if (p === '/tokens' && req.method === 'GET') {
       const row = db.prepare('SELECT payload, created_at FROM token_stats ORDER BY id DESC LIMIT 1').get();
       if (!row) {
@@ -490,6 +563,14 @@ const server = http.createServer(async (req, res) => {
     // ---- 以下需要鉴权 ----
     if (!authed(req)) {
       sendJSON(res, 401, { ok: false, error: '未授权：需要 Bearer token' });
+      return;
+    }
+
+    if (p.startsWith('/messages/') && req.method === 'DELETE') {
+      const id = Number(p.slice('/messages/'.length));
+      if (!Number.isInteger(id) || id <= 0) { sendJSON(res, 400, { ok: false, error: 'id 不对' }); return; }
+      const r = db.prepare('UPDATE messages SET hidden = 1 WHERE id = ?').run(id);
+      sendJSON(res, 200, { ok: true, hidden: r.changes });
       return;
     }
 
