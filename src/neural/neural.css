@@ -1027,3 +1027,100 @@
     bottom: 12px;
   }
 }
+
+/* ==========================================================================
+   精致度打磨：面板、列表、时间轴的细节
+   ========================================================================== */
+
+/* 浅色模式不用重投影，靠极淡描边和双层轻影区分层级 */
+.is-light .neural-panel,
+.is-light .neural-timeline {
+  border-color: rgba(24, 40, 48, 0.07);
+  box-shadow:
+    0 1px 2px rgba(24, 40, 48, 0.04),
+    0 10px 30px rgba(24, 40, 48, 0.05);
+}
+
+.is-dark .neural-panel,
+.is-dark .neural-timeline {
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 34px rgba(0, 0, 0, 0.35);
+}
+
+/* 数字统一等宽，位数变化时不抖动 */
+.neural-stat strong,
+.token-value,
+.neural-timeline-count,
+.neural-cat i,
+.neural-proj i {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* 统计数字收紧字距，更像仪表读数 */
+.neural-stat strong {
+  letter-spacing: -0.02em;
+}
+
+/* 活动流：用细分隔线代替整块 hover，密度更均匀 */
+.neural-stream-list {
+  gap: 0;
+}
+
+.neural-stream-list li {
+  border-radius: 7px;
+  padding: 10px 9px;
+}
+
+.neural-stream-list li + li {
+  border-top: 1px solid var(--n-line);
+}
+
+.neural-stream-list li:hover {
+  background: var(--n-panel);
+  border-color: transparent;
+  border-top-color: var(--n-line);
+}
+
+/* 日期用等宽字体缩到 10px，不抢标题 */
+.neural-stream-date {
+  letter-spacing: 0.02em;
+}
+
+/* 时间轴刻度更细，主刻度略长 */
+.neural-mark i {
+  height: 4px;
+  opacity: 0.7;
+}
+
+.neural-mark em {
+  letter-spacing: 0.01em;
+}
+
+.neural-track-rail {
+  background: linear-gradient(90deg, var(--n-line-strong), color-mix(in srgb, var(--n-line-strong) 40%, transparent));
+}
+
+/* 顶部分类栏：选中态更克制，不整块填色 */
+.neural-cat.is-on {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--n-warm) 34%, transparent);
+}
+
+.neural-proj.is-on {
+  background: var(--n-panel);
+}
+
+/* 悬停卡片：标签与正文的间距收紧 */
+.neural-tooltip p {
+  margin-top: 7px;
+}
+
+/* 详情面板的元信息对齐成两列 */
+.neural-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}

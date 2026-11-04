@@ -116,7 +116,7 @@ export class NeuronScene {
 
   // 星系星尘：与神经元共用同一套旋臂骨架，让圆盘显得饱满
   _buildStardust() {
-    const COUNT = 26000;
+    const COUNT = 38000;
     const ARMS = 3;
     const SPIN = 0.75;
     const positions = new Float32Array(COUNT * 3);
@@ -129,20 +129,24 @@ export class NeuronScene {
     for (let i = 0; i < COUNT; i += 1) {
       // 幂次让核区更密
       const t = Math.pow(Math.random(), 0.62);
-      const radius = 2.5 + t * 30;
+      // 约四分之一铺在中心核球上，密集一团，让星系有重心
+      const inCore = Math.random() < 0.26;
+      const radius = inCore
+        ? Math.pow(Math.random(), 0.7) * 7
+        : 6 + t * 26;
 
       const branch = Math.floor(Math.random() * ARMS) / ARMS;
       // 幂次抖动：八成贴着旋臂，两成散成星际尘埃
-      const armJitter = Math.pow(Math.random(), 2.6) * (Math.random() < 0.5 ? 1 : -1) * 0.42;
-      const r = radius + (Math.random() - 0.5) * 0.8;
+      const armJitter = inCore ? 0 : Math.pow(Math.random(), 2.6) * (Math.random() < 0.5 ? 1 : -1) * 0.42;
+      const r = radius + (Math.random() - 0.5) * (inCore ? 4.5 : 0.8);
       const angle = branch * Math.PI * 2 + r * SPIN + armJitter;
 
       positions[i * 3] = Math.cos(angle) * r;
-      positions[i * 3 + 1] = gauss() * 2.2 * (1 - t * 0.78);
+      positions[i * 3 + 1] = gauss() * (inCore ? 3.4 : 2.2 * (1 - t * 0.78));
       positions[i * 3 + 2] = Math.sin(angle) * r;
 
       const bright = Math.random();
-      sizes[i] = bright > 0.94 ? 1.3 + Math.random() * 1.2 : 0.22 + Math.random() * 0.6;
+      sizes[i] = bright > 0.955 ? 1.6 + Math.random() * 1.6 : 0.18 + Math.random() * 0.52;
       phases[i] = Math.random() * Math.PI * 2;
 
       // 越靠中心越暖白，外围偏冷蓝
@@ -372,8 +376,8 @@ export class NeuronScene {
 
     if (this.stardust) {
       const u = this.stardust.material.uniforms;
-      u.uColor.value.set(this.dark ? '#8fb8d4' : '#43515c');
-      u.uOpacity.value = this.dark ? 0.55 : 0.52;
+      u.uColor.value.set(this.dark ? '#8fb8d4' : '#33414b');
+      u.uOpacity.value = this.dark ? 0.6 : 0.62;
       u.uInvert.value = invert;
       this.stardust.material.blending = blend;
       this.stardust.material.needsUpdate = true;
