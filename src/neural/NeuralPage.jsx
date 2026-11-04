@@ -25,6 +25,11 @@ export default function NeuralPage() {
   const [stats, setStats] = useState(null);
   const [scope, setScope] = useState(null);
   const [view, setView] = useState({ category: '编程', project: '学习通' });
+  // SSE 回调在 effect 里注册，闭包会拿到旧的 view，用 ref 保持最新
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
   const [hovered, setHovered] = useState(null);
   const [selectedUid, setSelectedUid] = useState(null);
   const selected = useMemo(() => graph.nodes.find((n) => n.uid === selectedUid) || null, [graph.nodes, selectedUid]);
@@ -173,9 +178,21 @@ export default function NeuralPage() {
       es = new EventSource(`${API}/stream`);
       es.addEventListener('neuron', (ev) => {
         const payload = JSON.parse(ev.data);
+        const cur = viewRef.current;
+        const node = payload.node;
+        // 只接收当前视图范围内的节点，否则看博客时会冒出学习通的记忆
+        const inScope = cur.project
+          ? node.project === cur.project
+          : cur.category
+            ? node.category === cur.category
+            : true;
+        if (!inScope) return;
         setGraph((prev) => {
-          if (prev.nodes.some((n) => n.uid === payload.node.uid)) return prev;
-          return { nodes: [...prev.nodes, payload.node], edges: [...prev.edges, ...payload.edges] };
+          if (prev.nodes.some((n) => n.uid === node.uid)) return prev;
+          const known = new Set(prev.nodes.map((n) => n.uid));
+          known.add(node.uid);
+          const edges = payload.edges.filter((e) => known.has(e.source) && known.has(e.target));
+          return { nodes: [...prev.nodes, node], edges: [...prev.edges, ...edges] };
         });
         setStats((prev) => (prev ? { ...prev, total: prev.total + 1, today: prev.today + 1, edges: prev.edges + payload.edges.length } : prev));
       });

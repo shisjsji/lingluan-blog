@@ -16,6 +16,11 @@ const GALLERY_FILE = path.join(CONTENT_DIR, 'gallery.json');
 const SESSION_TTL = 1000 * 60 * 60 * 8;
 const sessions = new Map();
 
+// 登录失败限制：同一来源连续 5 次失败锁 10 分钟
+const LOGIN_LOCK_MS = 10 * 60 * 1000;
+const MAX_LOGIN_FAILS = 5;
+const loginAttempts = new Map();
+
 const PASSWORD_HASH = (process.env.ADMIN_PASSWORD_HASH || '').trim();
 if (!PASSWORD_HASH) {
   console.error('缺少环境变量 ADMIN_PASSWORD_HASH（密码的 sha256）');
@@ -131,11 +136,20 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (p === '/admin/api/login' && req.method === 'POST') {
+    const ip = req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+    const rec = loginAttempts.get(ip);
+    if (rec && rec.until > now) {
+      sendJSON(res, 429, { ok: false, error: '尝试次数过多，请 10 分钟后再试' });
+      return;
+    }
+
     const raw = await readBody(req);
     let payload;
     try { payload = JSON.parse(raw.toString('utf8')); } catch { sendJSON(res, 400, { ok: false }); return; }
     const guess = String(payload.password || '');
     if (sha256(guess) === PASSWORD_HASH) {
+      loginAttempts.delete(ip);
       const sid = crypto.randomBytes(24).toString('hex');
       sessions.set(sid, { at: Date.now() });
       res.writeHead(200, {
@@ -144,6 +158,8 @@ const server = http.createServer(async (req, res) => {
       });
       res.end(JSON.stringify({ ok: true }));
     } else {
+      const count = (rec ? rec.count : 0) + 1;
+      loginAttempts.set(ip, { count, until: count >= MAX_LOGIN_FAILS ? now + LOGIN_LOCK_MS : 0 });
       sendJSON(res, 401, { ok: false, error: '密码不对' });
     }
     return;

@@ -695,6 +695,19 @@ export class NeuronScene {
     this.sparkMesh?.material.dispose();
     this.stardust?.geometry.dispose();
     this.stardust?.material.dispose();
+    // 星云与星系核持有 canvas 纹理，不释放会在反复切项目时持续占用显存
+    if (this.nebulaSprites) {
+      for (const sprite of this.nebulaSprites) {
+        sprite.material.map?.dispose();
+        sprite.material.dispose();
+      }
+      this.nebulaSprites = null;
+    }
+    if (this.core) {
+      this.core.material.map?.dispose();
+      this.core.material.dispose();
+      this.core = null;
+    }
     this.composer?.dispose?.();
     this.renderer?.dispose?.();
   }

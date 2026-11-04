@@ -181,12 +181,17 @@ function weaveSynapses(node, tags, prev) {
     created.push({ source: prev.uid, target: node.uid, kind: 'temporal', weight: 1.4 });
   }
 
-  // 2) 标签重叠：挑最相近的几个历史节点连过去
+  // 2) 标签重叠：先用 SQL 粗筛候选，再精确算重叠
   if (tags.length) {
     const wanted = new Set(tags.map((t) => t.toLowerCase()));
+    const cond = tags.map(() => 'tags LIKE ?').join(' OR ');
+    // LIKE 只做粗筛，真正的重叠数在下面按数组精确计算
+    const candidates = db
+      .prepare(`SELECT uid, tags, created_at FROM neurons WHERE uid <> ? AND (${cond}) LIMIT 500`)
+      .all(node.uid, ...tags.map((t) => `%${t}%`));
+
     const scored = [];
-    for (const row of selectAll.all()) {
-      if (row.uid === node.uid) continue;
+    for (const row of candidates) {
       const otherTags = JSON.parse(row.tags || '[]').map((t) => t.toLowerCase());
       let overlap = 0;
       for (const t of otherTags) if (wanted.has(t)) overlap += 1;
@@ -231,7 +236,14 @@ function recordNeuron(input) {
 // ---------- HTTP ----------
 
 function cors(res) {
-  res.setHeader('Access-Control-Allow-Origin', ALLOW_ORIGIN.join(',') || '*');
+  // 逗号分隔的多个来源写进单个响应头浏览器不接受，只能回显匹配的那一个
+  const origin = String(res.req?.headers?.origin || '').trim();
+  const allowed = ALLOW_ORIGIN.map((o) => o.trim()).filter(Boolean);
+  if (origin && allowed.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    res.setHeader('Access-Control-Allow-Origin', allowed[0] || '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Vary', 'Origin');

@@ -52,6 +52,8 @@ const TOOLS = [
 async function callApi(path, options = {}) {
   const res = await fetch(`${API}${path}`, {
     ...options,
+    // 服务器不响应时不能把对话挂死
+    signal: AbortSignal.timeout(15000),
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${TOKEN}`,

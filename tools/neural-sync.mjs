@@ -174,16 +174,19 @@ if (fs.existsSync(STATE_PATH)) {
 }
 const syncedSet = new Set(state.synced || []);
 
-const sessions = db.prepare('SELECT id, title, directory, time_created, time_updated FROM session ORDER BY time_created ASC').all();
-console.log(`会话 ${sessions.length} 场`);
+// 增量窗口：从上一次同步往前多看 5 分钟，覆盖时间戳边界
+const sinceTs = FULL ? 0 : Math.max(0, (state.lastSyncAt || 0) - 5 * 60 * 1000);
 
-const partStmt = db.prepare('SELECT message_id, data FROM part WHERE session_id = ? ORDER BY time_created ASC');
-const msgStmt = db.prepare('SELECT id, data FROM message WHERE session_id = ? ORDER BY time_created ASC');
+const sessions = db.prepare('SELECT id, title, directory, time_created, time_updated FROM session ORDER BY time_created ASC').all();
+console.log(`会话 ${sessions.length} 场${FULL ? '（全量）' : sinceTs ? '（增量）' : ''}`);
+
+const partStmt = db.prepare('SELECT message_id, data FROM part WHERE session_id = ? AND time_created >= ? ORDER BY time_created ASC');
+const msgStmt = db.prepare('SELECT id, data, time_created FROM message WHERE session_id = ? AND time_created >= ? ORDER BY time_created ASC');
 
 const episodes = [];
 
 for (const session of sessions) {
-  const messages = msgStmt.all(session.id);
+  const messages = msgStmt.all(session.id, sinceTs);
   const roleById = new Map();
   for (const m of messages) {
     let role = 'unknown';
@@ -193,7 +196,7 @@ for (const session of sessions) {
     roleById.set(m.id, role);
   }
 
-  const parts = partStmt.all(session.id);
+  const parts = partStmt.all(session.id, sinceTs);
   // 把片段按消息归组，保留顺序
   const byMessage = new Map();
   for (const p of parts) {
@@ -326,7 +329,7 @@ for (const e of fresh) {
   const dir = path.join(MD_DIR, safeName(e.category), safeName(e.project || '未归类'));
   fs.mkdirSync(dir, { recursive: true });
   const stamp = fmtTime(Date.parse(e.createdAt)).replace(/[: ]/g, '-');
-  const file = path.join(dir, `${stamp}-${safeName(e.title).slice(0, 24)}.md`);
+  const file = path.join(dir, `${stamp}-${safeName(e.title).slice(0, 24)}-${e.uidHint.slice(-6)}.md`);
   fs.writeFileSync(file, toMarkdown(e), 'utf8');
   written += 1;
   if (!sessionFile.has(e.sessionId)) sessionFile.set(e.sessionId, []);
@@ -366,7 +369,8 @@ if (TOKEN) {
   }
   console.log(`同步成功 ${ok} 条，失败 ${fail} 条`);
 
-  state.synced = [...syncedSet];
+  state.synced = [...syncedSet].slice(-500);
+  state.lastSyncAt = Date.now();
   state.lastSync = new Date().toISOString();
   fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), 'utf8');
 } else {
