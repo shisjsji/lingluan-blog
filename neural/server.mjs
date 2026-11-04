@@ -56,6 +56,21 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_synapses_source ON synapses(source);
   CREATE INDEX IF NOT EXISTS idx_synapses_target ON synapses(target);
 
+  CREATE TABLE IF NOT EXISTS knowledge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project TEXT NOT NULL DEFAULT '',
+    kind TEXT NOT NULL DEFAULT 'progress',
+    title TEXT NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    tags TEXT NOT NULL DEFAULT '[]',
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(project, kind, title)
+  );
+  CREATE INDEX IF NOT EXISTS idx_knowledge_project ON knowledge(project);
+  CREATE INDEX IF NOT EXISTS idx_knowledge_kind ON knowledge(kind);
+
   CREATE TABLE IF NOT EXISTS token_stats (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     payload TEXT NOT NULL,
@@ -155,6 +170,18 @@ function rowToNode(row) {
     createdAt: row.created_at,
   };
 }
+
+const KINDS = ['progress', 'pitfall', 'insight', 'decision', 'output'];
+
+const upsertKnowledge = db.prepare(`
+  INSERT INTO knowledge (project, kind, title, body, tags, status, created_at, updated_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(project, kind, title) DO UPDATE SET
+    body = excluded.body,
+    tags = excluded.tags,
+    status = excluded.status,
+    updated_at = excluded.updated_at
+`);
 
 const subscribers = new Set();
 
@@ -281,14 +308,11 @@ function authed(req) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+// 检索：先用 LIKE 全量召回（中文短词只有两三个字，trigram 覆盖不到），
+// 再在应用层按命中位置打分。标题命中 > 标签命中 > 摘要命中，同分看新旧。
 function searchNeurons({ q, tag, from, to, limit = 20 }) {
   const clauses = [];
   const params = [];
-  if (q) {
-    clauses.push('(title LIKE ? OR summary LIKE ? OR tags LIKE ?)');
-    const like = `%${q}%`;
-    params.push(like, like, like);
-  }
   if (tag) {
     clauses.push('tags LIKE ?');
     params.push(`%"${tag}"%`);
@@ -302,9 +326,43 @@ function searchNeurons({ q, tag, from, to, limit = 20 }) {
     params.push(new Date(to).toISOString());
   }
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
-  const sql = `SELECT * FROM neurons ${where} ORDER BY created_at DESC LIMIT ?`;
-  const rows = db.prepare(sql).all(...params, Math.min(100, Math.max(1, Number(limit) || 20)));
-  return rows.map(rowToNode);
+  const rows = db.prepare(`SELECT * FROM neurons ${where}`).all(...params);
+
+  const terms = String(q || '').split(/[\s,，、]+/).map((t) => t.trim()).filter(Boolean);
+  const now = Date.now();
+
+  const scored = [];
+  for (const row of rows) {
+    const node = rowToNode(row);
+    let score = 0;
+
+    if (terms.length) {
+      let allMatched = true;
+      for (const term of terms) {
+        let hit = 0;
+        if (node.title.includes(term)) hit += 10;
+        if (node.tags.some((t) => t.includes(term))) hit += 6;
+        if (node.summary.includes(term)) hit += 3;
+        if (hit === 0) allMatched = false;
+        score += hit;
+      }
+      // 所有词都命中的优先，部分命中的作为补充
+      if (!allMatched) score *= 0.35;
+      if (score === 0) continue;
+      // 标题完整包含原查询，额外加分
+      if (node.title.includes(q)) score += 8;
+    }
+
+    // 时间衰减：越新越靠前，但只作为同分时的次要因素
+    const days = (now - Date.parse(node.createdAt)) / 86400000;
+    score += Math.max(0, 3 - Math.log10(1 + days) * 1.2);
+
+    scored.push({ node, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score || Date.parse(b.node.createdAt) - Date.parse(a.node.createdAt));
+  const size = Math.min(100, Math.max(1, Number(limit) || 20));
+  return scored.slice(0, size).map((item) => ({ ...item.node, score: Number(item.score.toFixed(2)) }));
 }
 
 const server = http.createServer(async (req, res) => {
@@ -448,6 +506,91 @@ const server = http.createServer(async (req, res) => {
       // 只保留最近 200 次快照
       db.prepare('DELETE FROM token_stats WHERE id NOT IN (SELECT id FROM token_stats ORDER BY id DESC LIMIT 200)').run();
       sendJSON(res, 200, { ok: true });
+      return;
+    }
+
+
+    if (p === '/knowledge' && req.method === 'GET') {
+      const project = url.searchParams.get('project');
+      const kind = url.searchParams.get('kind');
+      const limit = Math.min(200, Number(url.searchParams.get('limit')) || 50);
+      const clauses = [];
+      const params = [];
+      if (project) { clauses.push('project = ?'); params.push(project); }
+      if (kind) { clauses.push('kind = ?'); params.push(kind); }
+      const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+      const rows = db.prepare(`SELECT * FROM knowledge ${where} ORDER BY updated_at DESC LIMIT ?`).all(...params, limit);
+      sendJSON(res, 200, {
+        ok: true,
+        items: rows.map((r) => ({
+          project: r.project,
+          kind: r.kind,
+          title: r.title,
+          body: r.body,
+          tags: JSON.parse(r.tags || '[]'),
+          status: r.status,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        })),
+      });
+      return;
+    }
+
+    // 项目全貌：一次读完，供 agent 加载上下文
+    if (p === '/brief' && req.method === 'GET') {
+      const project = url.searchParams.get('project');
+      if (!project) {
+        sendJSON(res, 400, { ok: false, error: '需要 project 参数' });
+        return;
+      }
+      const rows = db.prepare('SELECT * FROM knowledge WHERE project = ? ORDER BY kind, updated_at DESC').all(project);
+      const grouped = {};
+      for (const kind of KINDS) grouped[kind] = [];
+      for (const r of rows) {
+        if (!grouped[r.kind]) grouped[r.kind] = [];
+        grouped[r.kind].push({
+          title: r.title,
+          body: r.body,
+          tags: JSON.parse(r.tags || '[]'),
+          status: r.status,
+          updatedAt: r.updated_at,
+        });
+      }
+      const lastActive = rows.length ? rows.map((r) => r.updated_at).sort().pop() : null;
+      sendJSON(res, 200, { ok: true, project, lastActive, total: rows.length, ...grouped });
+      return;
+    }
+
+    if (p === '/projects' && req.method === 'GET') {
+      const rows = db.prepare('SELECT project, COUNT(*) AS n, MAX(updated_at) AS last FROM knowledge WHERE project <> \'\' GROUP BY project ORDER BY last DESC').all();
+      sendJSON(res, 200, { ok: true, projects: rows.map((r) => ({ project: r.project, count: r.n, lastActive: r.last })) });
+      return;
+    }
+
+    if (p === '/knowledge' && req.method === 'POST') {
+      const raw = await readBody(req);
+      let payload;
+      try {
+        payload = JSON.parse(raw.toString('utf8'));
+      } catch {
+        sendJSON(res, 400, { ok: false, error: 'JSON 格式错误' });
+        return;
+      }
+      const items = Array.isArray(payload) ? payload : [payload];
+      const now = new Date().toISOString();
+      let saved = 0;
+      for (const item of items) {
+        const project = String(item.project || '').trim().slice(0, 48);
+        const kind = KINDS.includes(item.kind) ? item.kind : 'progress';
+        const title = String(item.title || '').trim().slice(0, 120);
+        if (!title) continue;
+        const body = String(item.body || '').trim().slice(0, 4000);
+        const tags = normalizeTags(item.tags);
+        const status = ['active', 'done', 'dropped'].includes(item.status) ? item.status : 'active';
+        upsertKnowledge.run(project, kind, title, body, JSON.stringify(tags), status, now, now);
+        saved += 1;
+      }
+      sendJSON(res, 200, { ok: true, saved });
       return;
     }
 
