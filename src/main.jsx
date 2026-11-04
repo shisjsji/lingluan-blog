@@ -19,6 +19,7 @@ import {
   Menu,
   Moon,
   MoveUpRight,
+  RefreshCw,
   Search,
   ShieldCheck,
   Sparkles,
@@ -237,14 +238,30 @@ function formatTokens(n) {
   return String(n)
 }
 
+function relativeTime(iso) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return '刚刚'
+  if (min < 60) return min + ' 分钟前'
+  const hour = Math.floor(min / 60)
+  if (hour < 24) return hour + ' 小时前'
+  return Math.floor(hour / 24) + ' 天前'
+}
+
 function TokenWidget() {
   const [data, setData] = useState(null)
-  useEffect(() => {
-    fetch('/neural-api/tokens')
+  const [refreshing, setRefreshing] = useState(false)
+
+  const load = () => {
+    setRefreshing(true)
+    return fetch('/neural-api/tokens')
       .then((r) => r.json())
       .then((d) => { if (d && !d.empty) setData(d) })
       .catch(() => {})
-  }, [])
+      .finally(() => setRefreshing(false))
+  }
+
+  useEffect(() => { load() }, [])
   if (!data) return null
   const cells = [
     { label: '今日', value: data.today?.total || 0 },
@@ -263,8 +280,14 @@ function TokenWidget() {
         ))}
       </div>
       <div className="token-note">
-        <span className="mono">MODEL TOKEN USAGE</span>
-        {data.snapshotAt && <span className="mono">更新于 {new Date(data.snapshotAt).toLocaleString('zh-CN', { hour12: false })}</span>}
+        <span className="mono">TOKEN USAGE</span>
+        <span className="token-note-row">
+          {data.snapshotAt && <span className="mono">{relativeTime(data.snapshotAt)}更新</span>}
+          <button className="token-refresh" onClick={load} disabled={refreshing} title="重新读取最新统计">
+            <RefreshCw size={11} className={refreshing ? 'is-spinning' : ''} />
+            {refreshing ? '读取中' : '刷新'}
+          </button>
+        </span>
       </div>
     </section>
   )
