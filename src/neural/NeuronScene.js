@@ -66,10 +66,10 @@ export class NeuronScene {
     this.disposed = false;
 
     this.clock = new THREE.Clock();
-    this.rotation = { x: 0.92, y: 0 };
-    this.targetRotation = { x: 0.92, y: 0 };
-    this.distance = 54;
-    this.targetDistance = 54;
+    this.rotation = { x: 1.32, y: 0 };
+    this.targetRotation = { x: 1.32, y: 0 };
+    this.distance = 64;
+    this.targetDistance = 64;
     this.dragging = false;
     this.lastPointer = { x: 0, y: 0 };
     this.pointerNDC = new THREE.Vector2(-10, -10);
@@ -114,29 +114,46 @@ export class NeuronScene {
     this._buildStardust();
   }
 
-  // 远景星尘：让背景不再是空的
+  // 星系星尘：与神经元共用同一套旋臂骨架，让圆盘显得饱满
   _buildStardust() {
-    const COUNT = 1100;
+    const COUNT = 5200;
+    const ARMS = 3;
+    const SPIN = 1.15;
     const positions = new Float32Array(COUNT * 3);
     const sizes = new Float32Array(COUNT);
     const phases = new Float32Array(COUNT);
+    const tints = new Float32Array(COUNT * 3);
+
+    const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) * 0.9;
 
     for (let i = 0; i < COUNT; i += 1) {
-      const r = 58 + Math.random() * 96;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const sp = Math.sin(phi);
-      positions[i * 3] = r * sp * Math.cos(theta);
-      positions[i * 3 + 1] = r * Math.cos(phi) * 0.8;
-      positions[i * 3 + 2] = r * sp * Math.sin(theta);
-      sizes[i] = 0.5 + Math.random() * 1.8;
+      // 幂次让核区更密
+      const t = Math.pow(Math.random(), 0.62);
+      const radius = 2.5 + t * 30;
+
+      const branch = Math.floor(Math.random() * ARMS) / ARMS;
+      const angle = branch * Math.PI * 2 + radius * SPIN + gauss() * 0.16;
+      const scatter = 0.09 * radius + 0.45;
+
+      positions[i * 3] = Math.cos(angle) * radius + gauss() * scatter;
+      positions[i * 3 + 1] = gauss() * 2.4 * (1 - t * 0.78);
+      positions[i * 3 + 2] = Math.sin(angle) * radius + gauss() * scatter;
+
+      sizes[i] = 0.32 + Math.random() * 1.1;
       phases[i] = Math.random() * Math.PI * 2;
+
+      // 越靠中心越暖白，外围偏冷蓝
+      const warm = Math.max(0, 1 - radius / 17);
+      tints[i * 3] = 0.66 + warm * 0.32;
+      tints[i * 3 + 1] = 0.74 + warm * 0.36;
+      tints[i * 3 + 2] = 0.92 + warm * 0.06;
     }
 
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geom.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
     geom.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+    geom.setAttribute('aTint', new THREE.BufferAttribute(tints, 3));
 
     const mat = new THREE.ShaderMaterial({
       uniforms: {
@@ -148,27 +165,31 @@ export class NeuronScene {
       vertexShader: `
         attribute float aSize;
         attribute float aPhase;
+        attribute vec3 aTint;
         uniform float uTime;
         uniform float uPixelRatio;
         varying float vTwinkle;
+        varying vec3 vTint;
         void main() {
-          float twinkle = 0.45 + 0.55 * sin(uTime * 0.8 + aPhase);
+          float twinkle = 0.5 + 0.5 * sin(uTime * 0.8 + aPhase);
           vTwinkle = twinkle;
+          vTint = aTint;
           vec4 mv = modelViewMatrix * vec4(position, 1.0);
           gl_Position = projectionMatrix * mv;
-          gl_PointSize = aSize * uPixelRatio * (180.0 / -mv.z) * (0.7 + twinkle * 0.6);
+          gl_PointSize = aSize * uPixelRatio * (150.0 / max(1.0, -mv.z)) * (0.75 + twinkle * 0.5);
         }
       `,
       fragmentShader: `
         uniform vec3 uColor;
         uniform float uOpacity;
         varying float vTwinkle;
+        varying vec3 vTint;
         void main() {
           vec2 c = gl_PointCoord - 0.5;
           float d = length(c);
           if (d > 0.5) discard;
           float a = smoothstep(0.5, 0.0, d) * vTwinkle * uOpacity;
-          gl_FragColor = vec4(uColor, a);
+          gl_FragColor = vec4(uColor * vTint, a);
         }
       `,
       transparent: true,
@@ -178,7 +199,7 @@ export class NeuronScene {
 
     this.stardust = new THREE.Points(geom, mat);
     this.stardust.frustumCulled = false;
-    this.scene.add(this.stardust);
+    this.group.add(this.stardust);
 
     this._buildNebula();
     this._buildCore();
@@ -376,30 +397,32 @@ export class NeuronScene {
       node.heatRatio = Math.exp(-Math.max(0, days) / 50);
     }
 
-    // 半径按数据自身的时间跨度归一化，否则跨度小时会挤成一团
+    // 半径按数据自身的时间跨度归一化
     const times = this.nodes.map((n) => Date.parse(n.createdAt));
     const minT = Math.min(...times);
     const maxT = Math.max(...times);
     const span = Math.max(1, maxT - minT);
+
+    const ARMS = 3;
+    const SPIN = 1.15;
+
     for (const node of this.nodes) {
       const t = (Date.parse(node.createdAt) - minT) / span;
+      // 时间决定半径：早期记忆靠近星系核，新的在外圈
+      const radius = 3 + Math.pow(t, 0.55) * 26;
 
-      // 体积分布：内密外疏，像星系核与外围
-      const vol = Math.cbrt(unitHash(node.uid, 'r'));
-      const r = 4 + vol * 20 + t * 14;
+      // 三条旋臂，半径越大角度扭转越多，形成螺旋
+      const branch = Math.floor(unitHash(node.uid, 'branch') * ARMS) / ARMS;
+      const angle = branch * Math.PI * 2 + radius * SPIN;
 
-      const u = unitHash(node.uid, 'u');
-      const v = unitHash(node.uid, 'v');
-      const phi = Math.acos(2 * v - 1);
+      // 撒布：越外围越松散，核区更紧
+      const scatter = 0.11 * radius + 0.7;
+      const dx = (unitHash(node.uid, 'sx') - 0.5) * scatter * 2;
+      const dz = (unitHash(node.uid, 'sz') - 0.5) * scatter * 2;
+      // 盘厚：中心厚、外缘薄
+      const dy = (unitHash(node.uid, 'sy') - 0.5) * 3.4 * (1 - t * 0.72);
 
-      // 两条旋臂：时间越新角度偏移越大，形成螺旋
-      const arm = Math.floor(unitHash(node.uid, 'arm') * 2) * Math.PI;
-      const tagBias = unitHash((node.tags && node.tags[0]) || 'misc', 'b') * 0.5;
-      const th = u * 0.22 + arm + t * 4.4 + tagBias * 0.5;
-
-      const sinPhi = Math.sin(phi);
-      // 压扁成盘状，更像银河
-      node.pos = [r * sinPhi * Math.cos(th), r * Math.cos(phi) * 0.24, r * sinPhi * Math.sin(th)];
+      node.pos = [Math.cos(angle) * radius + dx, dy, Math.sin(angle) * radius + dz];
     }
 
     this.timeSpan = { min: minT, max: maxT };
@@ -637,8 +660,8 @@ export class NeuronScene {
   }
 
   resetView() {
-    this.targetRotation = { x: 0.92, y: 0 };
-    this.targetDistance = 54;
+    this.targetRotation = { x: 1.32, y: 0 };
+    this.targetDistance = 64;
     this.autoSpin = true;
   }
 
