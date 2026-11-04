@@ -174,11 +174,6 @@ function HomePage() {
 
     <TokenWidget />
 
-    <div className="page-wrap home-contact"><ContactWidget /></div>
-
-    <section className="home-guestbook page-wrap">
-      <GuestbookWidget compact />
-    </section>
 
     <section className="home-grid page-wrap">
       <Reveal className="section-heading"><h2>最近在做什么</h2><Link to="/about" className="text-link">更多关于我 <ArrowUpRight size={15} /></Link></Reveal>
@@ -201,6 +196,11 @@ function HomePage() {
     <section className="gallery-entry page-wrap">
       <Reveal className="gallery-entry-inner"><h2>还有一些照片，<br /><em>放在别处。</em></h2><Link to="/gallery" className="circle-link" aria-label="进入图库"><ArrowUpRight size={22} /></Link></Reveal>
     </section>
+
+    <div className="home-closing page-wrap">
+      <ContactWidget />
+      <GuestbookWidget compact />
+    </div>
   </>
 }
 
