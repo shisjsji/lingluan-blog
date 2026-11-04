@@ -13,7 +13,7 @@ const DARK = {
   nodeCool: new THREE.Color('#9fd0e4'),
   edge: new THREE.Color('#3f4e5a'),
   edgeWarm: new THREE.Color('#a85a40'),
-  bloom: 0.62,
+  bloom: 0.42,
   bloomRadius: 0.8,
   bloomThreshold: 0.3,
   fog: 0.0075,
@@ -66,10 +66,10 @@ export class NeuronScene {
     this.disposed = false;
 
     this.clock = new THREE.Clock();
-    this.rotation = { x: 1.32, y: 0 };
-    this.targetRotation = { x: 1.32, y: 0 };
-    this.distance = 64;
-    this.targetDistance = 64;
+    this.rotation = { x: 1.51, y: 0 };
+    this.targetRotation = { x: 1.51, y: 0 };
+    this.distance = 46;
+    this.targetDistance = 46;
     this.dragging = false;
     this.lastPointer = { x: 0, y: 0 };
     this.pointerNDC = new THREE.Vector2(-10, -10);
@@ -116,7 +116,7 @@ export class NeuronScene {
 
   // 星系星尘：与神经元共用同一套旋臂骨架，让圆盘显得饱满
   _buildStardust() {
-    const COUNT = 5200;
+    const COUNT = 7600;
     const ARMS = 3;
     const SPIN = 1.15;
     const positions = new Float32Array(COUNT * 3);
@@ -139,7 +139,7 @@ export class NeuronScene {
       positions[i * 3 + 1] = gauss() * 2.4 * (1 - t * 0.78);
       positions[i * 3 + 2] = Math.sin(angle) * radius + gauss() * scatter;
 
-      sizes[i] = 0.32 + Math.random() * 1.1;
+      sizes[i] = 0.55 + Math.random() * 1.5;
       phases[i] = Math.random() * Math.PI * 2;
 
       // 越靠中心越暖白，外围偏冷蓝
@@ -260,7 +260,7 @@ export class NeuronScene {
       opacity: 0.6,
     });
     const core = new THREE.Sprite(mat);
-    core.scale.set(20, 20, 1);
+    core.scale.set(13, 13, 1);
     this.group.add(core);
     this.core = core;
   }
@@ -376,7 +376,7 @@ export class NeuronScene {
       }
     }
     if (this.core) {
-      this.core.material.opacity = this.dark ? 0.6 : 0.18;
+      this.core.material.opacity = this.dark ? 0.5 : 0.16;
     }
   }
 
@@ -454,7 +454,7 @@ export class NeuronScene {
       positions[i * 3] = node.pos[0];
       positions[i * 3 + 1] = node.pos[1];
       positions[i * 3 + 2] = node.pos[2];
-      sizes[i] = 5.2 + node.weight * 4.4;
+      sizes[i] = 7.5 + node.weight * 5.5;
       phases[i] = hashPhase(node.uid);
       node._visible = 1;
     });
@@ -660,8 +660,8 @@ export class NeuronScene {
   }
 
   resetView() {
-    this.targetRotation = { x: 1.32, y: 0 };
-    this.targetDistance = 64;
+    this.targetRotation = { x: 1.51, y: 0 };
+    this.targetDistance = 46;
     this.autoSpin = true;
   }
 
