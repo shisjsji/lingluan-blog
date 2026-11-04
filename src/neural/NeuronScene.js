@@ -268,10 +268,10 @@ export class NeuronScene {
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
-      opacity: 0.6,
+      opacity: 0.42,
     });
     const core = new THREE.Sprite(mat);
-    core.scale.set(13, 13, 1);
+    core.scale.set(9, 9, 1);
     this.group.add(core);
     this.core = core;
   }

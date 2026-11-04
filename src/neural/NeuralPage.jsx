@@ -425,21 +425,23 @@ export default function NeuralPage() {
             <GitBranch size={13} /> 生长时间线
           </span>
           <span className="neural-timeline-count">{visibleCount} / {graph.nodes.length}</span>
-          {timeValue < 0.999 && (
-            <button className="neural-jump" onClick={() => { setPlaying(false); setTimeValue(1); }}>
-              回到最新
+          <div className="neural-timeline-actions">
+            {timeValue < 0.999 && (
+              <button className="neural-jump" onClick={() => { setPlaying(false); setTimeValue(1); }}>
+                回到最新
+              </button>
+            )}
+            <button
+              className="neural-play"
+              onClick={() => {
+                if (timeValue >= 1) setTimeValue(0);
+                setPlaying((p) => !p);
+              }}
+            >
+              {playing ? <Pause size={13} /> : <Play size={13} />}
+              {playing ? '暂停' : '回放生长'}
             </button>
-          )}
-          <button
-            className="neural-play"
-            onClick={() => {
-              if (timeValue >= 1) setTimeValue(0);
-              setPlaying((p) => !p);
-            }}
-          >
-            {playing ? <Pause size={13} /> : <Play size={13} />}
-            {playing ? '暂停' : '回放生长'}
-          </button>
+          </div>
         </div>
         <div className="neural-track" data-playing={playing}>
           <div className="neural-track-rail" />

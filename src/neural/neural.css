@@ -1334,8 +1334,14 @@
   color: var(--n-warm);
 }
 
-.neural-jump {
+.neural-timeline-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.neural-jump {
   padding: 6px 12px;
   border-radius: 7px;
   border: 1px solid color-mix(in srgb, var(--n-warm) 40%, transparent);
