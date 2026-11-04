@@ -1173,3 +1173,48 @@ input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .say-hi { animation: none; }
 }
+
+
+/* ---------- 留言板：宽屏两栏，表单吸顶 ---------- */
+
+.guestbook-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guestbook-form {
+  position: static;
+}
+
+@media (min-width: 1000px) {
+  .guestbook-page .guestbook-widget {
+    max-width: none;
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    grid-template-areas:
+      'head head'
+      'disc disc'
+      'form list';
+    column-gap: var(--sp-7);
+    row-gap: 0;
+    align-items: start;
+  }
+
+  .guestbook-page .guestbook-heading { grid-area: head; }
+  .guestbook-page .guestbook-disclaimer { grid-area: disc; }
+  .guestbook-page .guestbook-form {
+    grid-area: form;
+    position: sticky;
+    top: 100px;
+    margin-bottom: 0;
+  }
+  .guestbook-page .guestbook-list,
+  .guestbook-page .guestbook-state { grid-area: list; }
+
+  .guestbook-page .guestbook-list {
+    margin-top: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 4px;
+  }
+}

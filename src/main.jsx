@@ -379,7 +379,7 @@ function GalleryPage() {
 }
 
 function GuestbookPage() {
-  return <div className="page-wrap inner-page guestbook-page"><Link to="/" className="back-link"><ArrowLeft size={16} /> 回到首页</Link><PageIntro kicker="访客留言" title={<>留下一句<em>想说的话。</em></>} intro="留言通过 GitHub 保存和展示。发布时会公开你的 GitHub 用户名与留言内容，请不要填写个人隐私。" /><GuestbookWidget /></div>
+  return <div className="page-wrap inner-page guestbook-page"><Link to="/" className="back-link"><ArrowLeft size={16} /> 回到首页</Link><PageIntro kicker="访客留言" title={<>留下一句<em>想说的话。</em></>} intro="写下来就会公开展示，不用登录。别填手机号、住址这类私人信息。" /><GuestbookWidget /></div>
 }
 
 function GuestbookWidget({ compact = false }) {
