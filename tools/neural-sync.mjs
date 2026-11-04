@@ -224,7 +224,8 @@ for (const session of sessions) {
         sessionId: session.id,
         sessionTitle: session.title,
         sessionDir: session.directory,
-        startedAt: m.id ? Date.parse(String(m.id).slice(4, 17)) || session.time_created : session.time_created,
+        // 用消息自身的创建时间（数据库字段），从 id 里猜时间会全部回退成会话时间
+        startedAt: Number(m.time_created) || session.time_created,
         userText: said,
         assistantTexts: [],
         tools: new Set(),
