@@ -198,6 +198,14 @@ const MESSAGE_MAX = 50;          // 正文上限，按用户要求
 const MESSAGE_COOLDOWN = 10 * 60 * 1000; // 同一来源 10 分钟一条
 const messageRate = new Map();   // ip_hash -> 上次发言时间
 
+// 只用不清理会让这张表随访客数一直增长，每小时扫一次过期的
+setInterval(() => {
+  const nowMs = Date.now();
+  for (const [key, at] of messageRate) {
+    if (nowMs - at > MESSAGE_COOLDOWN) messageRate.delete(key);
+  }
+}, 60 * 60 * 1000).unref();
+
 function clientIp(req) {
   // nginx 反代后 remoteAddress 是 127.0.0.1，必须读 X-Real-IP
   const forwarded = String(req.headers['x-real-ip'] || '').trim();

@@ -59,6 +59,7 @@
       <button data-tab="about">关于我</button>
       <button data-tab="gallery">图库</button>
       <button data-tab="paper">Agent 文章</button>
+      <button data-tab="messages">留言</button>
     </div>
 
     <div id="tab-notes" class="tab">
@@ -99,6 +100,14 @@
         <label>摘要</label><textarea id="paperLead" rows="4"></textarea>
         <label>章节（JSON 数组）</label><textarea id="paperSections" rows="8"></textarea>
         <label>结论</label><textarea id="paperConclusion" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div id="tab-messages" class="tab hide">
+      <div class="card">
+        <h2>访客留言</h2>
+        <p class="status">删除后前台立刻消失，数据保留在库里（软删除），需要时可以恢复。</p>
+        <div id="messagesList" class="messages-list"></div>
       </div>
     </div>
 
@@ -290,8 +299,43 @@ document.querySelectorAll('.tabs button').forEach((btn) => {
     btn.classList.add('on');
     document.querySelectorAll('.tab').forEach((t) => t.classList.add('hide'));
     $('tab-' + btn.dataset.tab).classList.remove('hide');
+    if (btn.dataset.tab === 'messages') renderMessages();
   };
 });
+
+async function renderMessages() {
+  const box = $('messagesList');
+  box.innerHTML = '<p class="status">读取中…</p>';
+  try {
+    const res = await api('/messages');
+    const data = await res.json();
+    if (!data.items || !data.items.length) {
+      box.innerHTML = '<p class="status">还没有人留言。</p>';
+      return;
+    }
+    box.innerHTML = data.items.map((m) => `
+      <div class="item">
+        <div class="item-head">
+          <span><strong>${escapeHtml(m.name || '路过的')}</strong>
+            <span class="status">${new Date(m.createdAt).toLocaleString('zh-CN', { hour12: false })}</span></span>
+          <button class="danger" data-del="${m.id}">删除</button>
+        </div>
+        <p class="message-body">${escapeHtml(m.body)}</p>
+      </div>`).join('');
+    box.querySelectorAll('[data-del]').forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm('删除这条留言？前台会立刻消失。')) return;
+        btn.disabled = true;
+        const r = await api('/messages/' + btn.dataset.del, { method: 'DELETE' });
+        const d = await r.json();
+        if (d.ok) renderMessages();
+        else { btn.disabled = false; alert(d.error || '删除失败'); }
+      };
+    });
+  } catch {
+    box.innerHTML = '<p class="status">读不到留言，检查后台服务。</p>';
+  }
+}
 
 function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }

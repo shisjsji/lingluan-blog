@@ -22,6 +22,8 @@ const MAX_LOGIN_FAILS = 5;
 const loginAttempts = new Map();
 
 const PASSWORD_HASH = (process.env.ADMIN_PASSWORD_HASH || '').trim();
+const NEURAL_API = (process.env.NEURAL_API || 'http://127.0.0.1:3002/neural-api').trim();
+const NEURAL_TOKEN = (process.env.NEURAL_TOKEN || '').trim();
 if (!PASSWORD_HASH) {
   console.error('缺少环境变量 ADMIN_PASSWORD_HASH（密码的 sha256）');
   process.exit(1);
@@ -181,6 +183,42 @@ const server = http.createServer(async (req, res) => {
   // 以下接口需要登录
   if (!isAuthed(req)) {
     sendJSON(res, 401, { ok: false, error: '未登录' });
+    return;
+  }
+
+
+  // ---- 留言管理：读到本服务，删除转发给神经 API ----
+  if (p === '/admin/api/messages' && req.method === 'GET') {
+    try {
+      const r = await fetch(`${NEURAL_API}/messages?limit=100`);
+      const d = await r.json();
+      sendJSON(res, 200, d);
+    } catch (err) {
+      sendJSON(res, 502, { ok: false, error: '读不到留言：' + err.message });
+    }
+    return;
+  }
+
+  if (p.startsWith('/admin/api/messages/') && req.method === 'DELETE') {
+    const id = Number(p.slice('/admin/api/messages/'.length));
+    if (!Number.isInteger(id) || id <= 0) {
+      sendJSON(res, 400, { ok: false, error: 'id 不对' });
+      return;
+    }
+    if (!NEURAL_TOKEN) {
+      sendJSON(res, 500, { ok: false, error: '服务端缺少 NEURAL_TOKEN' });
+      return;
+    }
+    try {
+      const r = await fetch(`${NEURAL_API}/messages/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${NEURAL_TOKEN}` },
+      });
+      const d = await r.json();
+      sendJSON(res, r.status, d);
+    } catch (err) {
+      sendJSON(res, 502, { ok: false, error: '删除失败：' + err.message });
+    }
     return;
   }
 
