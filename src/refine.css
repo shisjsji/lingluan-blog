@@ -545,3 +545,17 @@ input:focus-visible {
     text-align: left;
   }
 }
+
+/* 笔记页里的笔记行没有详情页，去掉可点击的暗示，避免假入口 */
+.note-row.is-plain {
+  cursor: default;
+}
+
+.note-row.is-plain:hover {
+  background: transparent;
+  padding-inline: 0;
+}
+
+.note-row.is-plain .note-arrow {
+  display: none;
+}

@@ -185,10 +185,10 @@ function HomePage() {
       <div className="now-grid">
         <Reveal className="now-feature"><div className="feature-icon"><Sparkles size={20} /></div><div><h3>和 Codex 以及各 agent 一起学习</h3><p>把想法变成可以运行的东西，在每一次提问、验证和修正里建立自己的方法。</p></div><ArrowDownRight className="feature-arrow" size={20} /></Reveal>
         <Reveal className="now-list">
-          <div className="now-row"><span className="row-number">02</span><div><p>把 Agent 协作整理成论文草稿</p><span>问题建模 / 实验记录 / 复盘</span></div><ChevronRight size={17} /></div>
-          <div className="now-row"><span className="row-number">03</span><div><p>折腾电脑装机与疑难杂症</p><span>硬件 / 系统 / 现场解决</span></div><ChevronRight size={17} /></div>
-          <div className="now-row"><span className="row-number">04</span><div><p>给信息安全打好基础</p><span>网络 / Linux / 基础实践</span></div><ChevronRight size={17} /></div>
-          <div className="now-row"><span className="row-number">05</span><div><p>把值得留住的过程写下来</p><span>笔记 / 风景 / 小项目</span></div><ChevronRight size={17} /></div>
+          <Link to="/notes" className="now-row"><span className="row-number">02</span><div><p>把 Agent 协作整理成论文草稿</p><span>问题建模 / 实验记录 / 复盘</span></div><ChevronRight size={17} /></Link>
+          <Link to="/about" className="now-row"><span className="row-number">03</span><div><p>折腾电脑装机与疑难杂症</p><span>硬件 / 系统 / 现场解决</span></div><ChevronRight size={17} /></Link>
+          <Link to="/about" className="now-row"><span className="row-number">04</span><div><p>给信息安全打好基础</p><span>网络 / Linux / 基础实践</span></div><ChevronRight size={17} /></Link>
+          <Link to="/notes" className="now-row"><span className="row-number">05</span><div><p>把值得留住的过程写下来</p><span>笔记 / 风景 / 小项目</span></div><ChevronRight size={17} /></Link>
         </Reveal>
       </div>
     </section>
@@ -204,8 +204,10 @@ function HomePage() {
   </>
 }
 
-function NoteRow({ note, index }) {
-  return <Link to="/notes" className="note-row"><span className={`note-bullet ${note.accent}`} /> <span className="note-index">0{index + 1}</span><div className="note-main"><h3>{note.title}</h3><p>{note.excerpt}</p></div><div className="note-detail"><span>{note.category}</span><small>{note.date} · {note.read}</small></div><ArrowUpRight className="note-arrow" size={17} /></Link>
+function NoteRow({ note, index, plain = false }) {
+  const Wrap = plain ? 'div' : Link
+  const wrapProps = plain ? {} : { to: '/notes' }
+  return <Wrap {...wrapProps} className={plain ? 'note-row is-plain' : 'note-row'}><span className={`note-bullet ${note.accent}`} /> <span className="note-index">0{index + 1}</span><div className="note-main"><h3>{note.title}</h3><p>{note.excerpt}</p></div><div className="note-detail"><span>{note.category}</span><small>{note.date} · {note.read}</small></div><ArrowUpRight className="note-arrow" size={17} /></Wrap>
 }
 
 function AboutPage() {
@@ -287,7 +289,7 @@ function NotesPage() {
   return <div className="page-wrap inner-page"><PageIntro kicker="笔记" title={<>一些正在成形的<em>想法。</em></>} intro="不追求每天更新，只留下下一次还会想打开的东西。" />
     <div className="content-admin-row"><span>内容保存在 GitHub，提交后自动更新网站。</span><a href={editorUrl('src/content/site-content.json')} target="_blank" rel="noreferrer">在线编辑笔记与记录 <ExternalLink size={14} /></a></div>
     <section className="notes-toolbar"><div className="filter-tabs">{categories.map((category) => <button key={category} className={active === category ? 'filter-tab active' : 'filter-tab'} onClick={() => setActive(category)}>{category}</button>)}</div><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索笔记" /></label></section>
-    <section className="notes-page-list">{filtered.length ? filtered.map((note, index) => <NoteRow key={note.title} note={note} index={index} />) : <div className="empty-state"><ListFilter size={20} /><p>还没有找到这条记录。</p></div>}</section>
+    <section className="notes-page-list">{filtered.length ? filtered.map((note, index) => <NoteRow key={note.title} note={note} index={index} plain />) : <div className="empty-state"><ListFilter size={20} /><p>还没有找到这条记录。</p></div>}</section>
     <article className="agent-paper"><h2>{agentPaper.title}</h2><p className="agent-paper-lead">{agentPaper.lead}</p><div className="agent-paper-grid">{agentPaper.sections.map((section, index) => <div key={section.title}><span>0{index + 1} / STUDY</span><h3>{section.title}</h3><p>{section.body}</p></div>)}</div><p className="agent-paper-conclusion"><strong>结论。</strong> {agentPaper.conclusion}</p></article>
     <div className="notes-footnote"><Command size={15} />更多笔记正在路上 <span>·</span> 最后更新于 2026.09</div>
   </div>
