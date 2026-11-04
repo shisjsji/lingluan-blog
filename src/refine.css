@@ -881,3 +881,10 @@ input:focus-visible {
     border-radius: 6px;
   }
 }
+
+/* 目录贴近正文，避免正文与目录之间空出大段 */
+.paper-layout {
+  grid-template-columns: minmax(0, 720px) 176px;
+  gap: var(--sp-7);
+  justify-content: start;
+}
