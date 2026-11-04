@@ -42,7 +42,6 @@ export default function NeuralPage() {
 
   const [timeValue, setTimeValue] = useState(1);
   const [playing, setPlaying] = useState(false);
-  const [scrubbing, setScrubbing] = useState(false);
 
   const range = useMemo(() => {
     if (!graph.nodes.length) return { start: Date.now() - 86400000, end: Date.now() };
@@ -162,9 +161,9 @@ export default function NeuralPage() {
   // 时间轴
   useEffect(() => {
     if (!sceneRef.current || status !== 'ready') return;
-    const ts = playing || scrubbing ? cursorTs : range.end;
-    sceneRef.current.setTimeFilter(ts);
-  }, [cursorTs, playing, scrubbing, range.end, status]);
+    // 始终跟随指针位置，松手后不能跳回全量
+    sceneRef.current.setTimeFilter(cursorTs);
+  }, [cursorTs, status]);
 
   // 回放
   useEffect(() => {
@@ -464,11 +463,8 @@ export default function NeuralPage() {
             value={Math.round(timeValue * 1000)}
             onChange={(e) => {
               setPlaying(false);
-              setScrubbing(true);
               setTimeValue(Number(e.target.value) / 1000);
             }}
-            onPointerUp={() => setScrubbing(false)}
-            onBlur={() => setScrubbing(false)}
             aria-label="时间轴"
           />
         </div>

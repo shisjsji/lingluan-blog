@@ -614,7 +614,6 @@
   top: 8px;
   height: 1px;
   background: var(--n-warm);
-  transition: width 0.08s linear;
 }
 
 .neural-mark {

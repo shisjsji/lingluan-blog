@@ -296,7 +296,7 @@ export class NeuronScene {
         const dy = e.clientY - this.lastPointer.y;
         this.targetRotation.y += dx * 0.005;
         this.targetRotation.x += dy * 0.004;
-        this.targetRotation.x = Math.max(-1.2, Math.min(1.2, this.targetRotation.x));
+        // 不限制俯仰角度，可以转到任意方向
         this.lastPointer = { x: e.clientX, y: e.clientY };
       }
     };
@@ -308,7 +308,8 @@ export class NeuronScene {
     this._onWheel = (e) => {
       e.preventDefault();
       this.autoSpin = false;
-      this.targetDistance = Math.max(28, Math.min(190, this.targetDistance + e.deltaY * 0.06));
+      // 只挡住过度拉近造成的穿模，拉远不设限
+      this.targetDistance = Math.max(8, Math.min(400, this.targetDistance + e.deltaY * 0.06));
     };
 
     this._onClick = () => {
