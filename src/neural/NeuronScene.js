@@ -164,6 +164,7 @@ export class NeuronScene {
         uColor: { value: new THREE.Color('#8fb8d4') },
         uOpacity: { value: 0.55 },
         uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+        uInvert: { value: 0 },
       },
       vertexShader: `
         attribute float aSize;
@@ -185,6 +186,7 @@ export class NeuronScene {
       fragmentShader: `
         uniform vec3 uColor;
         uniform float uOpacity;
+        uniform float uInvert;
         varying float vTwinkle;
         varying vec3 vTint;
         void main() {
@@ -192,7 +194,9 @@ export class NeuronScene {
           float d = length(c);
           if (d > 0.5) discard;
           float a = smoothstep(0.5, 0.0, d) * vTwinkle * uOpacity;
-          gl_FragColor = vec4(uColor * vTint, a);
+          // 浅色模式下星点应是墨色的，不是发光的
+          vec3 tinted = uInvert > 0.5 ? mix(uColor, vec3(0.1, 0.14, 0.17), 0.72) : uColor * vTint;
+          gl_FragColor = vec4(tinted, a);
         }
       `,
       transparent: true,
@@ -355,18 +359,39 @@ export class NeuronScene {
       });
       this.nodeMesh.geometry.getAttribute('aColor').needsUpdate = true;
     }
+    // 浅色纸面：星点必须是墨色的，靠混合模式和明暗反转实现
+    const invert = this.dark ? 0 : 1;
+    const blend = this.dark ? THREE.AdditiveBlending : THREE.NormalBlending;
+
+    if (this.nodeMesh) {
+      const u = this.nodeMesh.material.uniforms;
+      u.uInvert.value = invert;
+      this.nodeMesh.material.blending = blend;
+      this.nodeMesh.material.needsUpdate = true;
+    }
+
     if (this.stardust) {
       const u = this.stardust.material.uniforms;
-      u.uColor.value.copy(this.dark ? new THREE.Color('#8fb8d4') : new THREE.Color('#7d8b93'));
-      u.uOpacity.value = this.dark ? 0.55 : 0.16;
+      u.uColor.value.set(this.dark ? '#8fb8d4' : '#43515c');
+      u.uOpacity.value = this.dark ? 0.55 : 0.52;
+      u.uInvert.value = invert;
+      this.stardust.material.blending = blend;
+      this.stardust.material.needsUpdate = true;
     }
+
+    // 发光核心在浅色纸面上会变成白雾，直接隐去，中心交给密集的星点
+    if (this.core) {
+      this.core.visible = this.dark;
+      this.core.material.blending = blend;
+      this.core.material.needsUpdate = true;
+    }
+
     if (this.nebulaSprites) {
       for (const sprite of this.nebulaSprites) {
-        sprite.material.opacity = this.dark ? sprite.userData.baseOpacity : sprite.userData.baseOpacity * 0.1;
+        sprite.material.opacity = this.dark ? sprite.userData.baseOpacity : sprite.userData.baseOpacity * 0.16;
+        sprite.material.blending = blend;
+        sprite.material.needsUpdate = true;
       }
-    }
-    if (this.core) {
-      this.core.material.opacity = this.dark ? 0.5 : 0.16;
     }
   }
 
@@ -458,6 +483,7 @@ export class NeuronScene {
         uTime: this.uniforms.uTime,
         uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
         uHoverIndex: { value: -1 },
+        uInvert: { value: 0 },
       },
       vertexShader: `
         attribute float aSize;
@@ -479,6 +505,7 @@ export class NeuronScene {
         }
       `,
       fragmentShader: `
+        uniform float uInvert;
         varying vec3 vColor;
         varying float vAlpha;
         void main() {
@@ -488,8 +515,10 @@ export class NeuronScene {
           float core = smoothstep(0.16, 0.0, d);
           float halo = smoothstep(0.5, 0.04, d);
           float a = (core * 1.0 + halo * 0.42) * vAlpha;
-          vec3 col = vColor + core * 0.6;
-          gl_FragColor = vec4(col, a);
+          // 深色模式核心提亮，浅色模式核心压深（白纸上叠白等于看不见）
+          vec3 bright = vColor + core * 0.6;
+          vec3 ink = mix(vColor * 1.15, vec3(0.04, 0.06, 0.08), core * 0.55);
+          gl_FragColor = vec4(uInvert > 0.5 ? ink : bright, a);
         }
       `,
       transparent: true,
