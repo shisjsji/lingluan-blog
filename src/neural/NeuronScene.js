@@ -118,7 +118,7 @@ export class NeuronScene {
   _buildStardust() {
     const COUNT = 7600;
     const ARMS = 3;
-    const SPIN = 1.15;
+    const SPIN = 0.75;
     const positions = new Float32Array(COUNT * 3);
     const sizes = new Float32Array(COUNT);
     const phases = new Float32Array(COUNT);
@@ -132,12 +132,14 @@ export class NeuronScene {
       const radius = 2.5 + t * 30;
 
       const branch = Math.floor(Math.random() * ARMS) / ARMS;
-      const angle = branch * Math.PI * 2 + radius * SPIN + gauss() * 0.16;
-      const scatter = 0.09 * radius + 0.45;
+      // 幂次抖动：八成贴着旋臂，两成散成星际尘埃
+      const armJitter = Math.pow(Math.random(), 2.6) * (Math.random() < 0.5 ? 1 : -1) * 0.42;
+      const r = radius + (Math.random() - 0.5) * 0.8;
+      const angle = branch * Math.PI * 2 + r * SPIN + armJitter;
 
-      positions[i * 3] = Math.cos(angle) * radius + gauss() * scatter;
-      positions[i * 3 + 1] = gauss() * 2.4 * (1 - t * 0.78);
-      positions[i * 3 + 2] = Math.sin(angle) * radius + gauss() * scatter;
+      positions[i * 3] = Math.cos(angle) * r;
+      positions[i * 3 + 1] = gauss() * 2.2 * (1 - t * 0.78);
+      positions[i * 3 + 2] = Math.sin(angle) * r;
 
       sizes[i] = 0.55 + Math.random() * 1.5;
       phases[i] = Math.random() * Math.PI * 2;
@@ -404,25 +406,24 @@ export class NeuronScene {
     const span = Math.max(1, maxT - minT);
 
     const ARMS = 3;
-    const SPIN = 1.15;
+    const SPIN = 0.75;
 
     for (const node of this.nodes) {
       const t = (Date.parse(node.createdAt) - minT) / span;
       // 时间决定半径：早期记忆靠近星系核，新的在外圈
       const radius = 3 + Math.pow(t, 0.55) * 26;
 
-      // 三条旋臂，半径越大角度扭转越多，形成螺旋
+      // 三条旋臂。角度抖动用幂次压缩：多数紧贴臂，少数散成雾
       const branch = Math.floor(unitHash(node.uid, 'branch') * ARMS) / ARMS;
-      const angle = branch * Math.PI * 2 + radius * SPIN;
+      const armJitter = Math.pow(unitHash(node.uid, 'aj'), 2.6) * (unitHash(node.uid, 'as') < 0.5 ? 1 : -1) * 0.38;
+      const rJitter = (unitHash(node.uid, 'rj') - 0.5) * 0.7;
+      const r = radius + rJitter;
+      const angle = branch * Math.PI * 2 + r * SPIN + armJitter;
 
-      // 撒布：越外围越松散，核区更紧
-      const scatter = 0.11 * radius + 0.7;
-      const dx = (unitHash(node.uid, 'sx') - 0.5) * scatter * 2;
-      const dz = (unitHash(node.uid, 'sz') - 0.5) * scatter * 2;
       // 盘厚：中心厚、外缘薄
-      const dy = (unitHash(node.uid, 'sy') - 0.5) * 3.4 * (1 - t * 0.72);
+      const dy = (unitHash(node.uid, 'sy') - 0.5) * 3.2 * (1 - t * 0.7);
 
-      node.pos = [Math.cos(angle) * radius + dx, dy, Math.sin(angle) * radius + dz];
+      node.pos = [Math.cos(angle) * r, dy, Math.sin(angle) * r];
     }
 
     this.timeSpan = { min: minT, max: maxT };
@@ -454,7 +455,7 @@ export class NeuronScene {
       positions[i * 3] = node.pos[0];
       positions[i * 3 + 1] = node.pos[1];
       positions[i * 3 + 2] = node.pos[2];
-      sizes[i] = 7.5 + node.weight * 5.5;
+      sizes[i] = 5.0 + node.weight * 3.6;
       phases[i] = hashPhase(node.uid);
       node._visible = 1;
     });
