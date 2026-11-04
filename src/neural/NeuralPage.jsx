@@ -34,6 +34,10 @@ export default function NeuralPage() {
   const [selectedUid, setSelectedUid] = useState(null);
   const selected = useMemo(() => graph.nodes.find((n) => n.uid === selectedUid) || null, [graph.nodes, selectedUid]);
   const [status, setStatus] = useState('loading');
+  const [switching, setSwitching] = useState(false);
+  const [error, setError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [lastUpdate, setLastUpdate] = useState(null);
   const [dark, setDark] = useState(() => (document.documentElement.dataset.theme || 'light') === 'dark');
 
   const [timeValue, setTimeValue] = useState(1);
@@ -50,6 +54,15 @@ export default function NeuralPage() {
     const span = range.end - range.start || 1;
     return range.start + span * timeValue;
   }, [range, timeValue]);
+
+  // Esc 关闭详情：桌面端必须能只用键盘退出
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') setSelectedUid(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // 主题跟随博客
   useEffect(() => {
@@ -86,29 +99,34 @@ export default function NeuralPage() {
   useEffect(() => {
     if (status !== 'ready') return undefined;
     let alive = true;
+    setSwitching(true);
+    setError(null);
     (async () => {
       try {
         const params = new URLSearchParams();
         if (view.project) params.set('project', view.project);
         else if (view.category) params.set('category', view.category);
         params.set('limit', '600');
-        const [g, s] = await Promise.all([
+        const [g, st] = await Promise.all([
           fetch(`${API}/graph?${params}`).then((r) => r.json()),
           fetch(`${API}/stats`).then((r) => r.json()),
         ]);
         if (!alive) return;
         setGraph(g);
-        setStats(s);
+        setStats(st);
         setTimeValue(1);
         setSelectedUid(null);
+        setLastUpdate(new Date());
       } catch {
-        if (alive) setStatus('error');
+        if (alive) setError('星图数据暂时取不到，可能是网络或服务未响应。');
+      } finally {
+        if (alive) setSwitching(false);
       }
     })();
     return () => {
       alive = false;
     };
-  }, [view, status]);
+  }, [view, status, reloadKey]);
 
   // 初始化场景（只在就绪时建一次）
   useEffect(() => {
@@ -242,9 +260,11 @@ export default function NeuralPage() {
         <div className="neural-head-right">
           <span className={`neural-live ${status === 'ready' ? 'is-on' : ''}`}>
             <i /> {status === 'ready' ? '实时连接' : status === 'error' ? '连接失败' : '连接中'}
+            {lastUpdate && <em>{lastUpdate.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit' })}</em>}
           </span>
-          <button className="neural-ghost" onClick={() => sceneRef.current?.resetView()} title="复位视角">
-            <RotateCcw size={15} />
+          <button className="neural-ghost neural-ghost-labeled" onClick={() => sceneRef.current?.resetView()}>
+            <RotateCcw size={14} />
+            <span>复位视角</span>
           </button>
         </div>
       </header>
@@ -306,18 +326,27 @@ export default function NeuralPage() {
 
         <div className="neural-stage" ref={wrapRef}>
           <canvas ref={canvasRef} className="neural-canvas" />
-          {status === 'loading' && <div className="neural-hint">正在接入神经网络…</div>}
-          {status === 'error' && <div className="neural-hint is-error">神经服务暂时不可达</div>}
-          {hovered && (
+          {status === 'loading' && <div className="neural-hint">正在接入星图…</div>}
+          {switching && <div className="neural-hint neural-hint-soft">正在重组星图…</div>}
+          {error && (
+            <div className="neural-state">
+              <p>{error}</p>
+              <button className="neural-retry" onClick={() => setReloadKey((k) => k + 1)}>重新加载</button>
+            </div>
+          )}
+          {!switching && !error && status === 'ready' && graph.nodes.length === 0 && (
+            <div className="neural-state">
+              <p>这个项目还没有记忆。挑别的时间跟 MiMo 聊几句，星图上就会亮起新的星。</p>
+              <button className="neural-retry" onClick={() => setView({ category: view.category, project: '' })}>
+                看整个分类
+              </button>
+            </div>
+          )}
+          {hovered && !selected && (
             <div className="neural-tooltip">
               <span className="neural-tooltip-date">{formatDate(hovered.createdAt)}</span>
               <strong>{hovered.title}</strong>
-              {hovered.summary && <p>{hovered.summary}</p>}
-              <div className="neural-tooltip-tags">
-                {hovered.tags.map((t) => (
-                  <span key={t}>{t}</span>
-                ))}
-              </div>
+              <span className="neural-tooltip-hint">点击查看详情</span>
             </div>
           )}
           {selected && (
@@ -361,7 +390,18 @@ export default function NeuralPage() {
           </div>
           <ul className="neural-stream-list">
             {recent.map((node) => (
-              <li key={node.uid} onClick={() => sceneRef.current?.focusOn(node.uid)}>
+              <li
+                key={node.uid}
+                tabIndex={0}
+                role="button"
+                onClick={() => sceneRef.current?.focusOn(node.uid)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    sceneRef.current?.focusOn(node.uid);
+                  }
+                }}
+              >
                 <span className="neural-stream-date">{formatDate(node.createdAt)}</span>
                 <strong>{node.title}</strong>
                 <div className="neural-stream-tags">
@@ -385,6 +425,11 @@ export default function NeuralPage() {
             <GitBranch size={13} /> 生长时间线
           </span>
           <span className="neural-timeline-count">{visibleCount} / {graph.nodes.length}</span>
+          {timeValue < 0.999 && (
+            <button className="neural-jump" onClick={() => { setPlaying(false); setTimeValue(1); }}>
+              回到最新
+            </button>
+          )}
           <button
             className="neural-play"
             onClick={() => {
