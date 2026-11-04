@@ -567,14 +567,14 @@ input:focus-visible {
 /* ---------- 项目行：加宽的截图列 ---------- */
 
 .project-row {
-  grid-template-columns: 35px 92px 1fr auto 20px;
+  grid-template-columns: 35px 120px 1fr auto 20px;
   gap: 20px;
   min-height: 124px;
 }
 
 .project-thumb {
-  width: 92px;
-  height: 62px;
+  width: 120px;
+  height: 80px;
   object-fit: cover;
   object-position: top center;
   border-radius: 8px;
@@ -591,8 +591,8 @@ input:focus-visible {
 
 /* 没有截图的保持图标块，尺寸和截图对齐 */
 .project-icon {
-  width: 92px;
-  height: 62px;
+  width: 120px;
+  height: 80px;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -766,8 +766,8 @@ input:focus-visible {
 
   .project-thumb,
   .project-icon {
-    width: 64px;
-    height: 46px;
+    width: 76px;
+    height: 54px;
   }
 
   .paper-entry {
@@ -803,4 +803,81 @@ input:focus-visible {
 
 .home-closing .home-contact {
   padding: 0;
+}
+
+
+/* ---------- 论文页侧栏目录 ---------- */
+
+.paper-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 176px;
+  gap: var(--sp-8);
+  align-items: start;
+}
+
+.paper-toc {
+  position: sticky;
+  top: 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+}
+
+.paper-toc-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.paper-toc-link {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.16s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.paper-toc-link:hover {
+  color: var(--accent);
+}
+
+.paper-toc-link .mono {
+  font-size: 10px;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+@media (max-width: 900px) {
+  .paper-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .paper-toc {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 0;
+    margin-bottom: var(--sp-5);
+  }
+
+  .paper-toc-label {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .paper-toc-link {
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
 }

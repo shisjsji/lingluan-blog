@@ -310,19 +310,34 @@ function PaperPage() {
         title={<>面向个人学习的<br /><em>Agent 协作方法</em></>}
         intro="一份关于怎么让 AI 在自学里真正帮上忙的记录，写给以后会忘了自己怎么想的我。"
       />
-      <article className="paper-body">
-        <p className="paper-lead">{agentPaper.lead}</p>
-        {agentPaper.sections.map((section, index) => (
-          <section className="paper-section" key={section.title}>
-            <span className="paper-index mono">0{index + 1}</span>
-            <div>
-              <h2>{section.title}</h2>
-              <p>{section.body}</p>
-            </div>
-          </section>
-        ))}
-        <p className="paper-conclusion">{agentPaper.conclusion}</p>
-      </article>
+      <div className="paper-layout">
+        <article className="paper-body">
+          <p className="paper-lead">{agentPaper.lead}</p>
+          {agentPaper.sections.map((section, index) => (
+            <section className="paper-section" id={`paper-sec-${index}`} key={section.title}>
+              <span className="paper-index mono">0{index + 1}</span>
+              <div>
+                <h2>{section.title}</h2>
+                <p>{section.body}</p>
+              </div>
+            </section>
+          ))}
+          <p className="paper-conclusion">{agentPaper.conclusion}</p>
+        </article>
+        <aside className="paper-toc" aria-label="章节导航">
+          <span className="paper-toc-label mono">目录</span>
+          {agentPaper.sections.map((section, index) => (
+            <button
+              key={section.title}
+              className="paper-toc-link"
+              onClick={() => document.getElementById(`paper-sec-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              <span className="mono">0{index + 1}</span>
+              {section.title}
+            </button>
+          ))}
+        </aside>
+      </div>
     </div>
   );
 }
