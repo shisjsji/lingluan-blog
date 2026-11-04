@@ -888,3 +888,54 @@ input:focus-visible {
   gap: var(--sp-7);
   justify-content: start;
 }
+
+/* ---------- token 组件的刷新控制 ---------- */
+
+.token-note-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.token-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.token-refresh:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.token-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.token-refresh .is-spinning {
+  animation: token-spin 0.9s linear infinite;
+}
+
+@keyframes token-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .token-refresh .is-spinning { animation: none; }
+}
+
+@media (max-width: 800px) {
+  .token-note-row {
+    justify-content: flex-start;
+  }
+}
