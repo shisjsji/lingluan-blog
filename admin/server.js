@@ -228,6 +228,16 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (p === '/admin/api/knowledge' && req.method === 'GET') {
+    try {
+      const r = await fetch(`${NEURAL_API}/knowledge?limit=200`, { headers: { Authorization: `Bearer ${NEURAL_TOKEN}` } });
+      sendJSON(res, 200, await r.json());
+    } catch (err) {
+      sendJSON(res, 502, { ok: false, error: '读不到知识库：' + err.message });
+    }
+    return;
+  }
+
   if (p === '/admin/api/messages' && req.method === 'GET') {
     try {
       const r = await fetch(`${NEURAL_API}/messages?limit=100`);

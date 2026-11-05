@@ -107,6 +107,19 @@ db.exec(`
     payload TEXT NOT NULL,
     created_at TEXT NOT NULL
   );
+
+  -- 模型调用结果的缓存。同样的输入不再第二次付钱：
+  -- 重复点总结、总结失败后重试、会话只加了几句再总结，都命中这里。
+  CREATE TABLE IF NOT EXISTS llm_cache (
+    key TEXT PRIMARY KEY,
+    model TEXT NOT NULL,
+    reply TEXT NOT NULL,
+    in_chars INTEGER NOT NULL,
+    out_chars INTEGER NOT NULL,
+    hits INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    last_hit_at TEXT
+  );
 `);
 
 const insertNeuron = db.prepare(`
@@ -121,6 +134,9 @@ const selectAll = db.prepare('SELECT * FROM neurons ORDER BY created_at ASC, id 
 const selectSynapses = db.prepare('SELECT source, target, kind, weight FROM synapses');
 const selectRecent = db.prepare('SELECT * FROM neurons ORDER BY created_at DESC, id DESC LIMIT ?');
 const selectSessionLast = db.prepare('SELECT * FROM neurons WHERE session_id = ? ORDER BY created_at DESC, id DESC LIMIT 1');
+const selectSessionUids = db.prepare('SELECT uid FROM neurons WHERE session_id = ?');
+const deleteSessionNeurons = db.prepare('DELETE FROM neurons WHERE session_id = ?');
+const deleteSynapsesOf = db.prepare('DELETE FROM synapses WHERE source = ? OR target = ?');
 
 // ---------- 布局：标签决定方向，时间决定半径 ----------
 
@@ -207,6 +223,18 @@ try { db.exec("ALTER TABLE knowledge ADD COLUMN session_id TEXT NOT NULL DEFAULT
 
 const KINDS = ['progress', 'pitfall', 'insight', 'decision', 'output', 'preference'];
 
+// 提示词单独放文件，方便调整判断标准和示例
+function readPrompt(name, fallback) {
+  try {
+    return fs.readFileSync(new URL(`./${name}`, import.meta.url), 'utf8');
+  } catch {
+    return fallback;
+  }
+}
+const SUMMARY_PROMPT = readPrompt('summary-prompt.md', '你在整理工作对话。只输出 JSON：{"title","summary","category","project","pitfalls","decisions","preferences"}');
+// 长会话先分段捞素材，再合并成记忆；这是第二步用的提示词
+const EXTRACT_PROMPT = readPrompt('extract-prompt.md', '从这段对话里提取：问题（现象/根因/修法）、取舍、做法、他的要求、交付物。每条一行，标签开头。');
+
 const upsertKnowledge = db.prepare(`
   INSERT INTO knowledge (project, kind, title, body, tags, status, session_id, created_at, updated_at)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -267,10 +295,122 @@ function clientIp(req) {
   return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16);
 }
 
+// 模型输出用的是分段文本而不是 JSON：JSON 对模型太脆，一个裸换行就整条作废。
+// 这里按【段名】切分，某段格式坏了不影响其他段。
+function parseSummary(text) {
+  const raw = String(text || '').replace(/```(?:json|markdown)?/gi, '').trim();
+  const sections = {};
+  let current = null;
+  const buffer = {};
+
+  for (const line of raw.split('\n')) {
+    const match = line.match(/^\s*【(.+?)】\s*:?\s*(.*)$/);
+    if (match) {
+      current = match[1].trim();
+      buffer[current] = match[2] ? [match[2]] : [];
+      continue;
+    }
+    if (current && line.trim()) buffer[current].push(line.trim());
+  }
+
+  const join = (name) => (buffer[name] || []).join(' ').trim();
+  const pairs = (name, limit) => {
+    const out = [];
+    for (const row of buffer[name] || []) {
+      const idx = row.search(/[|｜]/);
+      if (idx === -1) {
+        if (row.length > 4) out.push({ title: row.slice(0, 100), detail: row });
+      } else {
+        const title = row.slice(0, idx).trim().slice(0, 100);
+        const detail = row.slice(idx + 1).trim().slice(0, 2000);
+        if (title) out.push({ title, detail: detail || title });
+      }
+      if (out.length >= limit) break;
+    }
+    return out;
+  };
+
+  const title = join('标题').slice(0, 120);
+  if (!title) throw new Error('模型没有给出标题');
+
+  return {
+    title,
+    summary: join('总结').slice(0, 2000),
+    category: join('分类').slice(0, 20),
+    project: join('项目').slice(0, 48),
+    pitfalls: pairs('坑', 3),
+    decisions: pairs('决定', 2),
+    insights: pairs('经验', 2),
+    outputs: pairs('交付', 2),
+    preferences: pairs('偏好', 3),
+  };
+}
+
+// 长会话一次读不完：先分段捞素材，再拿素材合并成记忆。
+// 直接 slice(0,12000) 会把结尾的结论整段丢掉，而结论恰恰是最该记的。
+const CHUNK_SIZE = 15000;
+const CHUNK_MAX = 4;
+
+async function distill(raw) {
+  const text = String(raw || '');
+  if (text.length <= CHUNK_SIZE) return text;
+
+  const n = Math.min(CHUNK_MAX, Math.ceil(text.length / CHUNK_SIZE));
+  const size = Math.ceil(text.length / n);
+  const digests = [];
+
+  for (let i = 0; i < n; i += 1) {
+    const part = text.slice(i * size, (i + 1) * size);
+    const where = `第 ${i + 1}/${n} 段${i === 0 ? '（开头）' : ''}${i === n - 1 ? '（结尾）' : ''}`;
+    const out = await callLLM([
+      { role: 'system', content: EXTRACT_PROMPT },
+      { role: 'user', content: `这是整段对话的${where}。捞素材。\n\n${part}` },
+    ], { maxTokens: 900, temperature: 0.2 });
+    const cleaned = String(out || '').trim();
+    if (cleaned && !cleaned.includes('无有效素材')) digests.push(`【${where}】\n${cleaned}`);
+  }
+
+  return digests.length ? digests.join('\n\n') : text.slice(0, CHUNK_SIZE);
+}
+
 // 调云端模型。统一走 OpenAI 兼容格式，DeepSeek / MiMo / 通义都支持
+//
+// 结果按「模型 + 参数 + 完整提问」哈希后落库。同样的输入只付一次钱：
+// 重复点总结、中途失败重试、会话只多聊了几句再总结，都会命中缓存直接返回。
+// 换模型或改提示词会让哈希变化，缓存自动失效，不需要手动清。
+const cacheGet = db.prepare('SELECT reply, hits FROM llm_cache WHERE key = ?');
+const cacheStore = db.prepare(`
+  INSERT OR REPLACE INTO llm_cache (key, model, reply, in_chars, out_chars, hits, created_at, last_hit_at)
+  VALUES (?, ?, ?, ?, ?, 0, ?, NULL)
+`);
+const cacheTouch = db.prepare('UPDATE llm_cache SET hits = hits + 1, last_hit_at = ? WHERE key = ?');
+
+const recentHits = { count: 0, inChars: 0 };
+
+function llmCacheKey(model, messages, temperature, maxTokens) {
+  const h = crypto.createHash('sha256');
+  h.update(`${model}\u0000${temperature}\u0000${maxTokens}\u0000`);
+  for (const m of messages) h.update(`${m.role}\u0000${m.content}\u0000\u0001`);
+  return h.digest('hex');
+}
+
 async function callLLM(messages, options = {}) {
   const cfg = llmConfig();
   if (!cfg.url || !cfg.key) throw new Error('还没配置模型地址和密钥');
+
+  const temperature = options.temperature ?? 0.3;
+  const maxTokens = options.maxTokens ?? 1200;
+  const key = llmCacheKey(cfg.model, messages, temperature, maxTokens);
+
+  if (!options.noCache) {
+    const hit = cacheGet.get(key);
+    if (hit) {
+      cacheTouch.run(new Date().toISOString(), key);
+      recentHits.count += 1;
+      recentHits.inChars += messages.reduce((sum, m) => sum + String(m.content || '').length, 0);
+      return hit.reply;
+    }
+  }
 
   const res = await fetch(cfg.url, {
     method: 'POST',
@@ -278,8 +418,8 @@ async function callLLM(messages, options = {}) {
     body: JSON.stringify({
       model: cfg.model,
       messages,
-      temperature: options.temperature ?? 0.3,
-      max_tokens: options.maxTokens ?? 1200,
+      temperature,
+      max_tokens: maxTokens,
     }),
     signal: AbortSignal.timeout(120000),
   });
@@ -289,7 +429,13 @@ async function callLLM(messages, options = {}) {
     throw new Error(`模型返回 ${res.status}：${text.slice(0, 200)}`);
   }
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
+  const reply = data.choices?.[0]?.message?.content || '';
+
+  if (reply && !options.noCache) {
+    const inChars = messages.reduce((sum, m) => sum + String(m.content || '').length, 0);
+    cacheStore.run(key, cfg.model, reply, inChars, reply.length, new Date().toISOString());
+  }
+  return reply;
 }
 
 const subscribers = new Set();
@@ -344,6 +490,42 @@ function weaveSynapses(node, tags, prev) {
   return created;
 }
 
+// 整体重织 semantic 边：标签重叠数决定权重（0.6 + 重叠 × 0.4），每个节点保留最相近的 3 个。
+// temporal 边（同会话前后段）不动，那是记录顺序，不是相似度。
+function rebuildSemanticSynapses() {
+  const rows = db.prepare('SELECT uid, tags FROM neurons ORDER BY created_at ASC, id ASC').all();
+  const nodes = rows.map((r) => ({
+    uid: r.uid,
+    tags: new Set(JSON.parse(r.tags || '[]').map((t) => String(t).toLowerCase())),
+  }));
+
+  db.prepare("DELETE FROM synapses WHERE kind = 'semantic'").run();
+  if (!nodes.length) return { nodes: 0, edges: 0 };
+
+  const now = new Date().toISOString();
+  let made = 0;
+  for (let i = 0; i < nodes.length; i += 1) {
+    const self = nodes[i];
+    if (!self.tags.size) continue;
+
+    const scored = [];
+    for (let j = 0; j < nodes.length; j += 1) {
+      if (i === j) continue;
+      let overlap = 0;
+      for (const t of nodes[j].tags) if (self.tags.has(t)) overlap += 1;
+      if (overlap > 0) scored.push({ uid: nodes[j].uid, overlap });
+    }
+
+    scored.sort((a, b) => b.overlap - a.overlap);
+    for (const item of scored.slice(0, 3)) {
+      insertSynapse.run(self.uid, item.uid, 'semantic', 0.6 + item.overlap * 0.4, now);
+      made += 1;
+    }
+  }
+
+  return { nodes: nodes.length, edges: made };
+}
+
 function recordNeuron(input) {
   const title = String(input.title || '').trim().slice(0, 120);
   if (!title) throw new Error('title 不能为空');
@@ -359,6 +541,13 @@ function recordNeuron(input) {
 
   const uid = newUid();
   const pos = layoutFor(uid, tags, createdAt);
+
+  // 同一场会话重新总结时，旧节点要清掉再建，否则同一件事会在星图上出现好几个点
+  if (sessionId && input.replace) {
+    for (const row of selectSessionUids.all(sessionId)) deleteSynapsesOf.run(row.uid, row.uid);
+    deleteSessionNeurons.run(sessionId);
+  }
+
   const prev = sessionId ? selectSessionLast.get(sessionId) : null;
   insertNeuron.run(uid, sessionId, category, project, title, summary, JSON.stringify(tags), kind, weight, 1, pos.x, pos.y, pos.z, createdAt);
 
@@ -571,6 +760,29 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // 缓存省了多少，直接看这里
+    if (p === '/cache' && req.method === 'GET') {
+      const agg = db.prepare(`
+        SELECT COUNT(*) AS entries,
+               COALESCE(SUM(hits), 0) AS hits,
+               COALESCE(SUM(in_chars), 0) AS sentIn,
+               COALESCE(SUM(out_chars), 0) AS sentOut,
+               COALESCE(SUM(in_chars * hits), 0) AS savedIn,
+               COALESCE(SUM(out_chars * hits), 0) AS savedOut
+        FROM llm_cache
+      `).get();
+      sendJSON(res, 200, {
+        ok: true,
+        entries: agg.entries,
+        hits: agg.hits,
+        // 真正发给模型的和被缓存挡下来的，分开算，别自己骗自己
+        spentChars: agg.sentIn + agg.sentOut,
+        savedChars: agg.savedIn + agg.savedOut,
+        thisRun: { ...recentHits },
+      });
+      return;
+    }
+
     if (p === '/scope' && req.method === 'GET') {
       const rows = db.prepare('SELECT category, project, COUNT(*) AS n FROM neurons GROUP BY category, project').all();
       const map = new Map();
@@ -650,6 +862,13 @@ const server = http.createServer(async (req, res) => {
     // ---- 以下需要鉴权 ----
     if (!authed(req)) {
       sendJSON(res, 401, { ok: false, error: '未授权：需要 Bearer token' });
+      return;
+    }
+
+    // 重新总结会删掉旧节点再建新的，它连出去和被连的边也跟着没了。
+    // 反复几次星图就会越来越稀，所以在总结之后整体重织一遍。
+    if (p === '/synapses/rebuild' && req.method === 'POST') {
+      sendJSON(res, 200, { ok: true, ...rebuildSemanticSynapses() });
       return;
     }
 
@@ -751,7 +970,7 @@ const server = http.createServer(async (req, res) => {
       try {
         const reply = await callLLM([
           { role: 'user', content: '只回复两个字：可用' },
-        ], { maxTokens: 20, temperature: 0 });
+        ], { maxTokens: 20, temperature: 0, noCache: true });
         sendJSON(res, 200, { ok: true, reply: reply.trim().slice(0, 40) });
       } catch (err) {
         sendJSON(res, 200, { ok: false, error: String(err.message).slice(0, 300) });
@@ -796,8 +1015,14 @@ const server = http.createServer(async (req, res) => {
         db.prepare(`
           INSERT INTO sessions (id, title, project, raw, status, message_count, created_at)
           VALUES (?, ?, ?, ?, 'pending', ?, ?)
-          ON CONFLICT(id) DO UPDATE SET raw = excluded.raw, message_count = excluded.message_count
-          WHERE sessions.status = 'pending'
+          ON CONFLICT(id) DO UPDATE SET
+            raw = excluded.raw,
+            message_count = excluded.message_count,
+            status = CASE
+              WHEN sessions.status = 'pending' THEN 'pending'
+              WHEN excluded.message_count >= sessions.message_count + 20 THEN 'pending'
+              ELSE sessions.status
+            END
         `).run(id, String(item.title || '').slice(0, 120), String(item.project || '').slice(0, 40), text, Number(item.messageCount) || 0, now);
         saved += 1;
       }
@@ -833,52 +1058,51 @@ const server = http.createServer(async (req, res) => {
       if (!target.length) { sendJSON(res, 200, { ok: true, done: 0, message: '没有待总结的会话' }); return; }
 
       const results = [];
+      const hitsBefore = recentHits.count;
+      const putPairs = (project, cat, sessionId, kind, status, list, limit, nowIso) => {
+        for (const row of (list || []).slice(0, limit)) {
+          const item = typeof row === 'string' ? { title: row, detail: '' } : (row || {});
+          const title = String(item.title || '').trim().slice(0, 100);
+          if (!title) continue;
+          const detail = String(item.detail || '').trim().slice(0, 2000) || title;
+          upsertKnowledge.run(project, kind, title, detail, JSON.stringify([cat]), status, sessionId, nowIso, nowIso);
+        }
+      };
+
       for (const session of target) {
         try {
+          const material = await distill(session.raw);
+          const merged = material.length < String(session.raw || '').length;
+
           const content = await callLLM([
-            {
-              role: 'system',
-              content: '你在整理用户与自己 AI 助手的工作对话。只输出一个 JSON 对象，不要任何解释或代码块标记。',
-            },
+            { role: 'system', content: SUMMARY_PROMPT },
             {
               role: 'user',
-              content: `读下面的对话，提炼成一条记忆。不要复述原话，只写结论和方法。
-
-输出 JSON，字段：
-- title：这次主要做了什么，20 字以内，动词开头
-- summary：分条写「做了什么 / 卡在哪 / 结论」，总共不超过 220 字，用换行分隔
-- category：从 编程、运维、设计、论文、其他 里选一个
-- project：如果明显属于某个项目（lingluan-blog 博客 / chaoxing-ai 超星 / neural-memory 记忆系统 / aurora 音频），写项目标识，否则空字符串
-- pitfalls：这次踩过的坑，一到三条，每条是 {"title": "十个字以内概括", "detail": "现象、原因、修法"}。没有就给空数组
-- decisions：做过的取舍，零到两条，每条是 {"title": "十个字以内概括", "detail": "选了什么、放弃了什么、为什么"}。没有就给空数组
-- preferences：从对话里能看出的用户习惯与偏好，零到三条，每条 {"title": "偏好概括", "detail": "具体表现，他明确反对什么、反复要求什么"}。只写有证据的，不要臆测
-
-对话：
-${session.raw.slice(0, 12000)}`,
+              content: merged
+                ? `记录太长，下面是分段提炼出的素材。事实都在里面，但它还不是记忆。按上面的标准合并成一条记忆：重复的并掉，前后矛盾的以结尾段的结论为准。\n\n${material}`
+                : `下面是这次对话的完整记录。按上面的标准提炼成一条记忆。\n\n${material}`,
             },
-          ], { maxTokens: 900 });
+          ], { maxTokens: 1100 });
 
-          const jsonText = content.replace(/^\s*```(?:json)?/i, '').replace(/```\s*$/, '').trim();
-          const parsed = JSON.parse(jsonText);
+          const parsed = parseSummary(content);
 
           const nowIso = new Date().toISOString();
           db.prepare('UPDATE sessions SET status = ?, summary = ?, summarized_at = ? WHERE id = ?')
             .run('done', JSON.stringify(parsed), nowIso, session.id);
 
           // 同一场会话重新总结时，先清掉上次生成的条目，否则会越积越多
-          db.prepare("DELETE FROM knowledge WHERE session_id = ? AND kind IN ('progress','pitfall','decision','preference')").run(session.id);
+          db.prepare("DELETE FROM knowledge WHERE session_id = ? AND kind IN ('progress','pitfall','decision','preference','insight','output')").run(session.id);
 
           // 落成 knowledge 条目，供 memory_load 读取
-          const project = String(parsed.project || session.project || '').slice(0, 48);
+          const project = String(parsed.project || session.project || 'general').slice(0, 48);
           const cat = ['编程', '运维', '设计', '论文', '其他'].includes(parsed.category) ? parsed.category : '编程';
           upsertKnowledge.run(project, 'progress', String(parsed.title || session.title).slice(0, 120), String(parsed.summary || '').slice(0, 4000), JSON.stringify([cat]), 'done', session.id, nowIso, nowIso);
-          for (const pit of (parsed.pitfalls || []).slice(0, 3)) {
-            const item = typeof pit === 'string' ? { title: pit, detail: '' } : (pit || {});
-            const title = String(item.title || '').trim().slice(0, 100);
-            if (!title) continue;
-            const detail = String(item.detail || '').trim().slice(0, 2000) || title;
-            upsertKnowledge.run(project, 'pitfall', title, detail, JSON.stringify([cat]), 'active', session.id, nowIso, nowIso);
-          }
+          putPairs(project, cat, session.id, 'pitfall', 'active', parsed.pitfalls, 3, nowIso);
+          putPairs(project, cat, session.id, 'preference', 'active', parsed.preferences, 3, nowIso);
+          putPairs(project, cat, session.id, 'decision', 'active', parsed.decisions, 2, nowIso);
+          putPairs(project, cat, session.id, 'insight', 'active', parsed.insights, 2, nowIso);
+          putPairs(project, cat, session.id, 'output', 'active', parsed.outputs, 2, nowIso);
+
           // 星图需要节点，这里把总结也写成一条神经元（会自动织边）
           try {
             recordNeuron({
@@ -891,34 +1115,19 @@ ${session.raw.slice(0, 12000)}`,
               kind: 'insight',
               weight: 1.5,
               createdAt: nowIso,
+              replace: true,
             });
           } catch (e) {
             // 神经元写入失败不该让整次总结失败
           }
 
-          for (const pref of (parsed.preferences || []).slice(0, 3)) {
-            const item = typeof pref === 'string' ? { title: pref, detail: '' } : (pref || {});
-            const title = String(item.title || '').trim().slice(0, 100);
-            if (!title) continue;
-            const detail = String(item.detail || '').trim().slice(0, 2000) || title;
-            upsertKnowledge.run(project, 'preference', title, detail, JSON.stringify([cat]), 'active', session.id, nowIso, nowIso);
-          }
-
-          for (const dec of (parsed.decisions || []).slice(0, 2)) {
-            const item = typeof dec === 'string' ? { title: dec, detail: '' } : (dec || {});
-            const title = String(item.title || '').trim().slice(0, 100);
-            if (!title) continue;
-            const detail = String(item.detail || '').trim().slice(0, 2000) || title;
-            upsertKnowledge.run(project, 'decision', title, detail, JSON.stringify([cat]), 'active', session.id, nowIso, nowIso);
-          }
-
-          results.push({ id: session.id, ok: true, title: parsed.title, project, category: cat });
+          results.push({ id: session.id, ok: true, title: parsed.title, project, category: cat, merged });
         } catch (err) {
           results.push({ id: session.id, ok: false, error: String(err.message).slice(0, 160) });
         }
       }
 
-      sendJSON(res, 200, { ok: true, done: results.filter((r) => r.ok).length, results });
+      sendJSON(res, 200, { ok: true, done: results.filter((r) => r.ok).length, cached: recentHits.count - hitsBefore, results });
       return;
     }
 

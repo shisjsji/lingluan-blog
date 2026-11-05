@@ -14,17 +14,23 @@ const TOKEN = process.env.NEURAL_TOKEN || (() => {
   try { return fs.readFileSync(path.join(HOME, '.neural-token'), 'utf8').trim(); } catch { return ''; }
 })();
 
-// 要同步进上下文的目标文件。可再加：每个项目一份
+// 要同步进上下文的目标文件。
+// 分两种：
+//   full  —— 完整记忆，给对应项目的会话用
+//   prefs —— 只放「他的习惯」和「可复用的经验」，这两类跟项目无关，放全局，
+//            这样不管开哪个项目的对话，他一上来就是认识的人
 const TARGETS = [
   {
     file: path.join(HOME, '.local/share/mimocode/memory/projects/da2ed82c-a748-4d00-9bf6-f6a411445a38/MEMORY.md'),
-    projects: ['lingluan-blog', 'neural-memory'],
+    projects: ['lingluan-blog', 'neural-memory', 'general'],
     title: '个人博客与记忆系统',
+    mode: 'full',
   },
   {
     file: path.join(HOME, '.local/share/mimocode/memory/global/MEMORY.md'),
-    projects: [],
-    title: '全局',
+    projects: '*',
+    title: '凌乱的风',
+    mode: 'prefs',
   },
 ];
 
@@ -46,6 +52,16 @@ async function fetchBrief(project) {
   return res.json();
 }
 
+async function listProjects() {
+  const res = await fetch(`${API}/projects`, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!res.ok) throw new Error(`读取项目列表失败：${res.status}`);
+  const data = await res.json();
+  return (data.projects || []).map((p) => p.project).filter(Boolean);
+}
+
 // 标题和正文相同时只渲染一次，避免「A：A」
 function line(item, limit) {
   const title = String(item.title || '').trim();
@@ -55,45 +71,69 @@ function line(item, limit) {
   return `- **${title}**：${cut}`;
 }
 
-function renderBlock(title, briefs) {
+// 不同会话会把同一件事各写一遍（「改代码前先评估影响」vs「改代码前先评估影响，别修东墙补西墙」），
+// 全塞进去就是重复。保留信息量最大的那条，短的和它重复的丢掉。
+function dedupeByTitle(items) {
+  const key = (s) => String(s || '').toLowerCase().replace(/[\s，。、（）()「」"']/g, '');
+  const sorted = [...items].sort((a, b) => String(b.title || '').length - String(a.title || '').length);
+  const kept = [];
+  for (const item of sorted) {
+    const k = key(item.title);
+    if (!k) continue;
+    if (kept.some((x) => x.k.includes(k) || k.includes(x.k))) continue;
+    kept.push({ ...item, k });
+  }
+  return kept;
+}
+
+function renderBlock(title, briefs, mode = 'full') {
   const lines = [];
   const total = briefs.reduce((sum, b) => sum + (b.total || 0), 0);
   if (!total) return null;
+  const full = mode === 'full';
 
   lines.push(BEGIN);
-  lines.push(`# ${title}的记忆（自动同步，块内勿手改）`);
+  lines.push(full ? `# ${title}的记忆（自动同步，块内勿手改）` : `# 关于${title}（自动同步，块内勿手改）`);
   lines.push('');
-  lines.push('> 这份内容由守护进程从服务器知识库同步而来，每 20 分钟刷新一次。');
-  lines.push('> 它记录的是「做到哪、踩过什么坑、做过什么决定」，用来避免重复踩坑和重复解释。');
+  if (full) {
+    lines.push('> 这份内容由守护进程从服务器知识库同步而来，每 20 分钟刷新一次。');
+    lines.push('> 它记录的是「做到哪、踩过什么坑、做过什么决定」，用来避免重复踩坑和重复解释。');
+  } else {
+    lines.push('> 这是他的个人习惯和踩坑经验，跨项目通用，由守护进程每 20 分钟自动同步。');
+    lines.push('> 这些不是建议，是已经确认过的要求，照做就行，不用再问一遍。');
+  }
   lines.push('');
 
-  // 习惯排最前：它决定该怎么配合，比「做过什么」更重要
-  const prefs = briefs.flatMap((b) => (b.preference || []).filter((x) => x.status !== 'dropped'));
+  // 习惯排最前：它决定该怎么配合，比「做过什么」更重要。
+// 全局那份只收打了「手写」标记的：模型总结出来的偏好经常是某个项目的界面需求
+// （「底栏要完整移植」「日志要分章节」），放进跨项目的记忆里就是噪音。
+  const rawPrefs = briefs.flatMap((b) => (b.preference || []).filter((x) => x.status !== 'dropped'));
+  const prefs = dedupeByTitle(full ? rawPrefs : rawPrefs.filter((x) => (x.tags || []).includes('手写')));
   if (prefs.length) {
     lines.push('## 他的习惯（照这个来）');
-    for (const pref of prefs.slice(0, 10)) lines.push(line(pref, 160));
+    for (const pref of prefs.slice(0, 12)) lines.push(line(pref, 160));
     lines.push('');
   }
 
   // 坑优先：这是最省时间的一块
   const pitfalls = briefs.flatMap((b) => (b.pitfall || []).filter((x) => x.status !== 'dropped').map((x) => ({ ...x, project: b.project })));
-  if (pitfalls.length) {
+  if (full && pitfalls.length) {
     lines.push('## 踩过的坑（别重复踩）');
     for (const pit of pitfalls.slice(0, 12)) lines.push(line(pit, 180));
     lines.push('');
   }
 
   const decisions = briefs.flatMap((b) => (b.decision || []).filter((x) => x.status !== 'dropped'));
-  if (decisions.length) {
+  if (full && decisions.length) {
     lines.push('## 做过的决定（别再推翻）');
     for (const dec of decisions.slice(0, 8)) lines.push(line(dec, 140));
     lines.push('');
   }
 
   const progress = briefs
-    .flatMap((b) => (b.progress || []).map((x) => ({ ...x, project: b.project })))
+    .flatMap((b) => (b.progress || []).filter((x) => x.status !== 'dropped').map((x) => ({ ...x, project: b.project })))
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
-  if (progress.length) {
+  if (full && progress.length) {
     lines.push('## 最近在做');
     for (const p of progress.slice(0, 10)) {
       const body = String(p.body || '').replace(/\s+/g, ' ').trim();
@@ -104,10 +144,17 @@ function renderBlock(title, briefs) {
     lines.push('');
   }
 
-  const insights = briefs.flatMap((b) => b.insight || []);
+  const insights = dedupeByTitle(briefs.flatMap((b) => b.insight || []));
   if (insights.length) {
     lines.push('## 可复用的经验');
-    for (const ins of insights.slice(0, 6)) lines.push(line(ins, 150));
+    for (const ins of insights.slice(0, full ? 6 : 8)) lines.push(line(ins, 150));
+    lines.push('');
+  }
+
+  const outputs = briefs.flatMap((b) => (b.output || []).filter((x) => x.status !== 'dropped'));
+  if (full && outputs.length) {
+    lines.push('## 东西放在哪');
+    for (const out of outputs.slice(0, 6)) lines.push(line(out, 120));
     lines.push('');
   }
 
@@ -137,10 +184,18 @@ function mergeIntoFile(file, block) {
 async function main() {
   if (!TOKEN) { console.error('缺少令牌'); process.exit(1); }
 
+  let all = [];
+  try {
+    all = await listProjects();
+  } catch (err) {
+    console.error(`  项目列表读取失败：${err.message}`);
+  }
+
   for (const target of TARGETS) {
-    if (!target.projects.length) continue; // 全局那份先不写，避免污染其他项目
+    const wanted = target.projects === '*' ? ['general', ...all] : target.projects;
+    if (!wanted.length) continue;
     const briefs = [];
-    for (const project of target.projects) {
+    for (const project of [...new Set(wanted)]) {
       try {
         const brief = await fetchBrief(project);
         if (brief.total) briefs.push(brief);
@@ -148,11 +203,11 @@ async function main() {
         console.error(`  ${project}: ${err.message}`);
       }
     }
-    const block = renderBlock(target.title, briefs);
+    const block = renderBlock(target.title, briefs, target.mode);
     if (!block) { console.log(`${target.title}：暂无记忆，跳过`); continue; }
     mergeIntoFile(target.file, block);
     const kb = Math.round(Buffer.byteLength(block, 'utf8') / 1024 * 10) / 10;
-    console.log(`${target.title}：已写入 ${target.file.replace(HOME, '~')}（${kb}KB）`);
+    console.log(`${target.title}：已写入 ${target.file.replace(HOME, '~')}（${kb}KB，${briefs.length} 个项目）`);
   }
 }
 

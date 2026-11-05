@@ -123,6 +123,12 @@
         </div>
         <div id="sessionsList" style="margin-top:14px"></div>
       </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>已记住的内容</h2>
+        <p class="status">模型从对话里提炼出来的条目。习惯和经验跨项目通用，其余留在各自项目里。作废的条目不显示。</p>
+        <div id="knowledgeList"></div>
+      </div>
     </div>
 
     <div id="tab-settings" class="tab hide">
@@ -331,7 +337,7 @@ document.querySelectorAll('.tabs button').forEach((btn) => {
     document.querySelectorAll('.tab').forEach((t) => t.classList.add('hide'));
     $('tab-' + btn.dataset.tab).classList.remove('hide');
     if (btn.dataset.tab === 'messages') renderMessages();
-    if (btn.dataset.tab === 'memory') loadSessions();
+    if (btn.dataset.tab === 'memory') { loadSessions(); loadKnowledge(); }
     if (btn.dataset.tab === 'settings') loadSettings();
   };
 });
@@ -398,10 +404,38 @@ $('summarizeBtn').onclick = async () => {
     const failed = (d.results || []).filter((r) => !r.ok);
     if (failed.length) $('summarizeStatus').textContent += '，失败 ' + failed.length + '：' + failed[0].error;
     loadSessions();
+    loadKnowledge();
   } else {
     $('summarizeStatus').textContent = d.error || '失败';
   }
 };
+
+const KIND_LABEL = { preference: '习惯', pitfall: '坑', decision: '决定', insight: '经验', progress: '进度', output: '交付' };
+
+async function loadKnowledge() {
+  const box = $('knowledgeList');
+  box.innerHTML = '<p class="status">读取中…</p>';
+  const res = await api('/knowledge?limit=200');
+  const d = await res.json();
+  if (!d.items) { box.innerHTML = '<p class="status">读不到知识库</p>'; return; }
+
+  const items = d.items.filter((it) => it.status !== 'dropped');
+  if (!items.length) { box.innerHTML = '<p class="status">还没有记住任何内容。</p>'; return; }
+
+  const order = ['preference', 'insight', 'pitfall', 'decision', 'progress', 'output'];
+  items.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+
+  box.innerHTML = items.map((it) => {
+    const label = KIND_LABEL[it.kind] || it.kind;
+    const where = it.project ? escapeHtml(it.project) : '未归类';
+    const body = String(it.body || '').trim();
+    const detail = body && body !== it.title
+      ? '<p style="font-size:12px;line-height:1.7;white-space:pre-wrap">' + escapeHtml(body) + '</p>'
+      : '';
+    return '<div class="item"><div class="item-head"><strong>' + escapeHtml(it.title || '') + '</strong>' +
+      '<span class="status">' + escapeHtml(label) + ' · ' + where + '</span></div>' + detail + '</div>';
+  }).join('');
+}
 
 async function renderMessages() {
   const box = $('messagesList');
