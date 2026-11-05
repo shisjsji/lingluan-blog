@@ -56,6 +56,26 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_synapses_source ON synapses(source);
   CREATE INDEX IF NOT EXISTS idx_synapses_target ON synapses(target);
 
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  -- 原始对话：等模型来总结，不再直接生成碎片
+  CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL DEFAULT '',
+    project TEXT NOT NULL DEFAULT '',
+    raw TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    summary TEXT NOT NULL DEFAULT '',
+    message_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    summarized_at TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status);
+
   CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL DEFAULT '',
@@ -193,6 +213,25 @@ const upsertKnowledge = db.prepare(`
     updated_at = excluded.updated_at
 `);
 
+const getSetting = db.prepare('SELECT value FROM settings WHERE key = ?');
+const putSetting = db.prepare(`
+  INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
+  ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+`);
+
+function setting(key, fallback = '') {
+  const row = getSetting.get(key);
+  return row ? row.value : fallback;
+}
+
+function llmConfig() {
+  return {
+    url: setting('llm_url'),
+    key: setting('llm_key'),
+    model: setting('llm_model', 'deepseek-chat'),
+  };
+}
+
 const insertMessage = db.prepare('INSERT INTO messages (name, body, ip_hash, created_at) VALUES (?, ?, ?, ?)');
 const MESSAGE_MAX = 50;          // 正文上限，按用户要求
 const MESSAGE_COOLDOWN = 10 * 60 * 1000; // 同一来源 10 分钟一条
@@ -211,6 +250,31 @@ function clientIp(req) {
   const forwarded = String(req.headers['x-real-ip'] || '').trim();
   const raw = forwarded || req.socket.remoteAddress || '';
   return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16);
+}
+
+// 调云端模型。统一走 OpenAI 兼容格式，DeepSeek / MiMo / 通义都支持
+async function callLLM(messages, options = {}) {
+  const cfg = llmConfig();
+  if (!cfg.url || !cfg.key) throw new Error('还没配置模型地址和密钥');
+
+  const res = await fetch(cfg.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.key}` },
+    body: JSON.stringify({
+      model: cfg.model,
+      messages,
+      temperature: options.temperature ?? 0.3,
+      max_tokens: options.maxTokens ?? 1200,
+    }),
+    signal: AbortSignal.timeout(120000),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`模型返回 ${res.status}：${text.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
 }
 
 const subscribers = new Set();
@@ -653,6 +717,154 @@ const server = http.createServer(async (req, res) => {
     if (p === '/projects' && req.method === 'GET') {
       const rows = db.prepare('SELECT project, COUNT(*) AS n, MAX(updated_at) AS last FROM knowledge WHERE project <> \'\' GROUP BY project ORDER BY last DESC').all();
       sendJSON(res, 200, { ok: true, projects: rows.map((r) => ({ project: r.project, count: r.n, lastActive: r.last })) });
+      return;
+    }
+
+    // ---- 模型配置 ----
+    if (p === '/settings' && req.method === 'GET') {
+      const cfg = llmConfig();
+      const masked = cfg.key ? cfg.key.slice(0, 6) + '••••' + cfg.key.slice(-4) : '';
+      sendJSON(res, 200, { ok: true, url: cfg.url, model: cfg.model, key: masked, hasKey: !!cfg.key });
+      return;
+    }
+
+    if (p === '/settings' && req.method === 'POST') {
+      const raw = await readBody(req);
+      let payload;
+      try { payload = JSON.parse(raw.toString('utf8')); } catch { sendJSON(res, 400, { ok: false, error: 'JSON 格式错误' }); return; }
+      const now = new Date().toISOString();
+      if (typeof payload.url === 'string') putSetting.run('llm_url', payload.url.trim(), now);
+      if (typeof payload.model === 'string') putSetting.run('llm_model', payload.model.trim(), now);
+      // 密钥传了才改，传空字符串不动，避免脱敏显示被写回去
+      if (typeof payload.key === 'string' && payload.key.trim() && !payload.key.includes('•')) {
+        putSetting.run('llm_key', payload.key.trim(), now);
+      }
+      sendJSON(res, 200, { ok: true });
+      return;
+    }
+
+    // ---- 客户端上传原始对话，等模型总结 ----
+    if (p === '/sessions' && req.method === 'POST') {
+      const raw = await readBody(req, 512 * 1024);
+      let payload;
+      try { payload = JSON.parse(raw.toString('utf8')); } catch { sendJSON(res, 400, { ok: false, error: 'JSON 格式错误' }); return; }
+      const items = Array.isArray(payload) ? payload : [payload];
+      const now = new Date().toISOString();
+      let saved = 0;
+      for (const item of items) {
+        const id = String(item.id || '').trim().slice(0, 80);
+        const text = String(item.raw || '').trim();
+        if (!id || !text) continue;
+        db.prepare(`
+          INSERT INTO sessions (id, title, project, raw, status, message_count, created_at)
+          VALUES (?, ?, ?, ?, 'pending', ?, ?)
+          ON CONFLICT(id) DO UPDATE SET raw = excluded.raw, message_count = excluded.message_count
+          WHERE sessions.status = 'pending'
+        `).run(id, String(item.title || '').slice(0, 120), String(item.project || '').slice(0, 40), text, Number(item.messageCount) || 0, now);
+        saved += 1;
+      }
+      sendJSON(res, 200, { ok: true, saved });
+      return;
+    }
+
+    if (p === '/sessions' && req.method === 'GET') {
+      const limit = Math.min(100, Number(url.searchParams.get('limit')) || 30);
+      const rows = db.prepare('SELECT id, title, project, status, summary, message_count, created_at, summarized_at FROM sessions ORDER BY created_at DESC LIMIT ?').all(limit);
+      sendJSON(res, 200, {
+        ok: true,
+        pending: db.prepare("SELECT COUNT(*) AS c FROM sessions WHERE status = 'pending'").get().c,
+        items: rows.map((r) => ({
+          id: r.id, title: r.title, project: r.project, status: r.status,
+          summary: r.summary, messageCount: r.message_count,
+          createdAt: r.created_at, summarizedAt: r.summarized_at,
+        })),
+      });
+      return;
+    }
+
+    // ---- 用模型总结 ----
+    if (p === '/summarize' && req.method === 'POST') {
+      const raw = await readBody(req);
+      let payload = {};
+      try { payload = JSON.parse(raw.toString('utf8') || '{}'); } catch { /* 用默认值 */ }
+
+      const target = payload.sessionId
+        ? db.prepare("SELECT * FROM sessions WHERE id = ? AND status = 'pending'").all(payload.sessionId)
+        : db.prepare("SELECT * FROM sessions WHERE status = 'pending' ORDER BY created_at ASC LIMIT ?").all(Math.min(5, Number(payload.limit) || 3));
+
+      if (!target.length) { sendJSON(res, 200, { ok: true, done: 0, message: '没有待总结的会话' }); return; }
+
+      const results = [];
+      for (const session of target) {
+        try {
+          const content = await callLLM([
+            {
+              role: 'system',
+              content: '你在整理用户与自己 AI 助手的工作对话。只输出一个 JSON 对象，不要任何解释或代码块标记。',
+            },
+            {
+              role: 'user',
+              content: `读下面的对话，提炼成一条记忆。不要复述原话，只写结论和方法。
+
+输出 JSON，字段：
+- title：这次主要做了什么，20 字以内，动词开头
+- summary：分条写「做了什么 / 卡在哪 / 结论」，总共不超过 220 字，用换行分隔
+- category：从 编程、运维、设计、论文、其他 里选一个
+- project：如果明显属于某个项目（lingluan-blog 博客 / chaoxing-ai 超星 / neural-memory 记忆系统 / aurora 音频），写项目标识，否则空字符串
+- pitfalls：这次踩过的坑，一到三条，每条一句话。没有就给空数组
+- decisions：做过的取舍，零到两条。没有就给空数组
+
+对话：
+${session.raw.slice(0, 12000)}`,
+            },
+          ], { maxTokens: 900 });
+
+          const jsonText = content.replace(/^\s*```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+          const parsed = JSON.parse(jsonText);
+
+          const nowIso = new Date().toISOString();
+          db.prepare('UPDATE sessions SET status = ?, summary = ?, summarized_at = ? WHERE id = ?')
+            .run('done', JSON.stringify(parsed), nowIso, session.id);
+
+          // 落成 knowledge 条目，供 memory_load 读取
+          const project = String(parsed.project || session.project || '').slice(0, 48);
+          const cat = ['编程', '运维', '设计', '论文', '其他'].includes(parsed.category) ? parsed.category : '编程';
+          upsertKnowledge.run(project, 'progress', String(parsed.title || session.title).slice(0, 120), String(parsed.summary || '').slice(0, 4000), JSON.stringify([cat]), 'done', nowIso, nowIso);
+          for (const pit of (parsed.pitfalls || []).slice(0, 3)) {
+            const text = String(pit || '').trim();
+            if (!text) continue;
+            upsertKnowledge.run(project, 'pitfall', text.slice(0, 100), text.slice(0, 2000), JSON.stringify([cat]), 'active', nowIso, nowIso);
+          }
+          // 星图需要节点，这里把总结也写成一条神经元（会自动织边）
+          try {
+            recordNeuron({
+              title: String(parsed.title || session.title || '未命名').slice(0, 80),
+              summary: String(parsed.summary || '').slice(0, 400),
+              tags: [cat, project].filter(Boolean),
+              category: cat,
+              project,
+              sessionId: session.id,
+              kind: 'insight',
+              weight: 1.5,
+              createdAt: nowIso,
+            });
+          } catch (e) {
+            // 神经元写入失败不该让整次总结失败
+          }
+
+          for (const dec of (parsed.decisions || []).slice(0, 2)) {
+            const text = String(dec || '').trim();
+            if (!text) continue;
+            upsertKnowledge.run(project, 'decision', text.slice(0, 100), text.slice(0, 2000), JSON.stringify([cat]), 'active', nowIso, nowIso);
+          }
+
+          results.push({ id: session.id, ok: true, title: parsed.title, project, category: cat });
+        } catch (err) {
+          results.push({ id: session.id, ok: false, error: String(err.message).slice(0, 160) });
+        }
+      }
+
+      sendJSON(res, 200, { ok: true, done: results.filter((r) => r.ok).length, results });
       return;
     }
 

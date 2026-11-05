@@ -60,6 +60,8 @@
       <button data-tab="gallery">图库</button>
       <button data-tab="paper">Agent 文章</button>
       <button data-tab="messages">留言</button>
+      <button data-tab="memory">记忆</button>
+      <button data-tab="settings">模型</button>
     </div>
 
     <div id="tab-notes" class="tab">
@@ -108,6 +110,35 @@
         <h2>访客留言</h2>
         <p class="status">删除后前台立刻消失，数据保留在库里（软删除），需要时可以恢复。</p>
         <div id="messagesList" class="messages-list"></div>
+      </div>
+    </div>
+
+    <div id="tab-memory" class="tab hide">
+      <div class="card">
+        <h2>对话总结</h2>
+        <p class="status">把同步上来的原始对话交给模型，提炼成一条记忆。总结会同时写进知识库和项目记忆。</p>
+        <div class="bar">
+          <button id="summarizeBtn">总结待处理的</button>
+          <span class="status" id="summarizeStatus"></span>
+        </div>
+        <div id="sessionsList" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <div id="tab-settings" class="tab hide">
+      <div class="card">
+        <h2>模型配置</h2>
+        <p class="status">用来做总结和分类。任何 OpenAI 兼容接口都行，比如 DeepSeek、MiMo、通义。</p>
+        <label>接口地址</label>
+        <input type="text" id="llmUrl" placeholder="https://api.deepseek.com/v1/chat/completions">
+        <label>API 密钥</label>
+        <input type="password" id="llmKey" placeholder="留空表示不修改">
+        <label>模型名</label>
+        <input type="text" id="llmModel" placeholder="deepseek-chat">
+        <div class="bar">
+          <button id="saveSettings">保存配置</button>
+          <span class="status" id="settingsStatus"></span>
+        </div>
       </div>
     </div>
 
@@ -300,8 +331,77 @@ document.querySelectorAll('.tabs button').forEach((btn) => {
     document.querySelectorAll('.tab').forEach((t) => t.classList.add('hide'));
     $('tab-' + btn.dataset.tab).classList.remove('hide');
     if (btn.dataset.tab === 'messages') renderMessages();
+    if (btn.dataset.tab === 'memory') loadSessions();
+    if (btn.dataset.tab === 'settings') loadSettings();
   };
 });
+
+async function loadSettings() {
+  const res = await api('/settings');
+  const d = await res.json();
+  if (!d.ok) return;
+  $('llmUrl').value = d.url || '';
+  $('llmModel').value = d.model || '';
+  $('llmKey').value = '';
+  $('llmKey').placeholder = d.hasKey ? '已保存（' + d.key + '），留空不修改' : '还没有设置';
+}
+
+$('saveSettings').onclick = async () => {
+  const btn = $('saveSettings');
+  btn.disabled = true;
+  const res = await api('/settings', {
+    method: 'POST',
+    body: JSON.stringify({ url: $('llmUrl').value.trim(), key: $('llmKey').value.trim(), model: $('llmModel').value.trim() }),
+  });
+  const d = await res.json();
+  btn.disabled = false;
+  $('settingsStatus').textContent = d.ok ? '已保存' : (d.error || '保存失败');
+  setTimeout(() => { $('settingsStatus').textContent = ''; }, 3000);
+  if (d.ok) loadSettings();
+};
+
+async function loadSessions() {
+  const box = $('sessionsList');
+  box.innerHTML = '<p class="status">读取中…</p>';
+  const res = await api('/sessions');
+  const d = await res.json();
+  if (!d.items) { box.innerHTML = '<p class="status">读不到会话</p>'; return; }
+  $('summarizeStatus').textContent = d.pending ? d.pending + ' 条待总结' : '全部已总结';
+  if (!d.items.length) { box.innerHTML = '<p class="status">还没有同步上来任何对话。</p>'; return; }
+  box.innerHTML = d.items.map((it) => {
+    const badge = it.status === 'done' ? '已完成' : '待总结';
+    const color = it.status === 'done' ? 'var(--ok)' : 'var(--muted)';
+    let preview = '';
+    if (it.summary) {
+      try {
+        const parsed = JSON.parse(it.summary);
+        preview = '<div class="item"><div class="item-head"><strong>' + escapeHtml(parsed.title || '') + '</strong><span class="status">' + escapeHtml(parsed.category || '') + ' · ' + escapeHtml(parsed.project || '未归类') + '</span></div><p style="font-size:12px;line-height:1.7;white-space:pre-wrap">' + escapeHtml(parsed.summary || '') + '</p></div>';
+      } catch {
+        preview = '<p class="status">总结格式异常</p>';
+      }
+    }
+    return '<div class="item"><div class="item-head"><strong>' + escapeHtml(it.title || it.id) + '</strong>' +
+      '<span class="status" style="color:' + color + '">' + badge + ' · ' + it.messageCount + ' 条消息</span></div>' +
+      preview + '</div>';
+  }).join('');
+}
+
+$('summarizeBtn').onclick = async () => {
+  const btn = $('summarizeBtn');
+  btn.disabled = true;
+  $('summarizeStatus').textContent = '模型正在读对话…';
+  const res = await api('/summarize', { method: 'POST', body: JSON.stringify({ limit: 3 }) });
+  const d = await res.json();
+  btn.disabled = false;
+  if (d.ok) {
+    $('summarizeStatus').textContent = d.done ? '完成 ' + d.done + ' 条' : (d.message || '没有待总结的');
+    const failed = (d.results || []).filter((r) => !r.ok);
+    if (failed.length) $('summarizeStatus').textContent += '，失败 ' + failed.length + '：' + failed[0].error;
+    loadSessions();
+  } else {
+    $('summarizeStatus').textContent = d.error || '失败';
+  }
+};
 
 async function renderMessages() {
   const box = $('messagesList');

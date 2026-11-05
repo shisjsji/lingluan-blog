@@ -188,6 +188,46 @@ const server = http.createServer(async (req, res) => {
 
 
   // ---- 留言管理：读到本服务，删除转发给神经 API ----
+
+  // ---- 模型配置与会话总结：转发到神经 API，密钥不落前端 ----
+  if (p === '/admin/api/settings' && (req.method === 'GET' || req.method === 'POST')) {
+    try {
+      const init = req.method === 'POST'
+        ? { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${NEURAL_TOKEN}` }, body: (await readBody(req)).toString('utf8') }
+        : { headers: { Authorization: `Bearer ${NEURAL_TOKEN}` } };
+      const r = await fetch(`${NEURAL_API}/settings`, init);
+      sendJSON(res, r.status, await r.json());
+    } catch (err) {
+      sendJSON(res, 502, { ok: false, error: '连不上神经服务：' + err.message });
+    }
+    return;
+  }
+
+  if (p === '/admin/api/sessions' && req.method === 'GET') {
+    try {
+      const r = await fetch(`${NEURAL_API}/sessions?limit=30`, { headers: { Authorization: `Bearer ${NEURAL_TOKEN}` } });
+      sendJSON(res, 200, await r.json());
+    } catch (err) {
+      sendJSON(res, 502, { ok: false, error: '读不到会话：' + err.message });
+    }
+    return;
+  }
+
+  if (p === '/admin/api/summarize' && req.method === 'POST') {
+    try {
+      const body = (await readBody(req)).toString('utf8') || '{}';
+      const r = await fetch(`${NEURAL_API}/summarize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${NEURAL_TOKEN}` },
+        body,
+      });
+      sendJSON(res, r.status, await r.json());
+    } catch (err) {
+      sendJSON(res, 502, { ok: false, error: '总结失败：' + err.message });
+    }
+    return;
+  }
+
   if (p === '/admin/api/messages' && req.method === 'GET') {
     try {
       const r = await fetch(`${NEURAL_API}/messages?limit=100`);
