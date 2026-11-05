@@ -94,6 +94,7 @@ db.exec(`
     body TEXT NOT NULL DEFAULT '',
     tags TEXT NOT NULL DEFAULT '[]',
     status TEXT NOT NULL DEFAULT 'active',
+    session_id TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     UNIQUE(project, kind, title)
@@ -201,15 +202,19 @@ function rowToNode(row) {
   };
 }
 
-const KINDS = ['progress', 'pitfall', 'insight', 'decision', 'output'];
+// 老库补列，忽略「已存在」的错误
+try { db.exec("ALTER TABLE knowledge ADD COLUMN session_id TEXT NOT NULL DEFAULT ''"); } catch { /* 已存在 */ }
+
+const KINDS = ['progress', 'pitfall', 'insight', 'decision', 'output', 'preference'];
 
 const upsertKnowledge = db.prepare(`
-  INSERT INTO knowledge (project, kind, title, body, tags, status, created_at, updated_at)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO knowledge (project, kind, title, body, tags, status, session_id, created_at, updated_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(project, kind, title) DO UPDATE SET
     body = excluded.body,
     tags = excluded.tags,
     status = excluded.status,
+    session_id = excluded.session_id,
     updated_at = excluded.updated_at
 `);
 
@@ -224,11 +229,21 @@ function setting(key, fallback = '') {
   return row ? row.value : fallback;
 }
 
+const PROVIDERS = {
+  deepseek: { url: 'https://api.deepseek.com/v1/chat/completions', model: 'deepseek-chat', label: 'DeepSeek' },
+  mimo: { url: 'https://api.xiaomi.com/v1/chat/completions', model: 'mimo-v2.6-pro', label: 'MiMo' },
+  qwen: { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', model: 'qwen-plus', label: '通义千问' },
+  kimi: { url: 'https://api.moonshot.cn/v1/chat/completions', model: 'moonshot-v1-8k', label: 'Kimi' },
+};
+
 function llmConfig() {
+  const provider = setting('llm_provider', 'deepseek');
+  const preset = PROVIDERS[provider] || PROVIDERS.deepseek;
   return {
-    url: setting('llm_url'),
+    provider,
+    url: setting('llm_url') || preset.url,
     key: setting('llm_key'),
-    model: setting('llm_model', 'deepseek-chat'),
+    model: setting('llm_model') || preset.model,
   };
 }
 
@@ -724,7 +739,23 @@ const server = http.createServer(async (req, res) => {
     if (p === '/settings' && req.method === 'GET') {
       const cfg = llmConfig();
       const masked = cfg.key ? cfg.key.slice(0, 6) + '••••' + cfg.key.slice(-4) : '';
-      sendJSON(res, 200, { ok: true, url: cfg.url, model: cfg.model, key: masked, hasKey: !!cfg.key });
+      sendJSON(res, 200, {
+        ok: true, provider: cfg.provider, url: cfg.url, model: cfg.model, key: masked, hasKey: !!cfg.key,
+        providers: Object.entries(PROVIDERS).map(([id, v]) => ({ id, label: v.label, url: v.url, model: v.model })),
+      });
+      return;
+    }
+
+    // 保存后立刻试一次，让人看到通不通，而不是等到总结时才报错
+    if (p === '/settings/test' && req.method === 'POST') {
+      try {
+        const reply = await callLLM([
+          { role: 'user', content: '只回复两个字：可用' },
+        ], { maxTokens: 20, temperature: 0 });
+        sendJSON(res, 200, { ok: true, reply: reply.trim().slice(0, 40) });
+      } catch (err) {
+        sendJSON(res, 200, { ok: false, error: String(err.message).slice(0, 300) });
+      }
       return;
     }
 
@@ -733,6 +764,13 @@ const server = http.createServer(async (req, res) => {
       let payload;
       try { payload = JSON.parse(raw.toString('utf8')); } catch { sendJSON(res, 400, { ok: false, error: 'JSON 格式错误' }); return; }
       const now = new Date().toISOString();
+      if (typeof payload.provider === 'string' && PROVIDERS[payload.provider]) {
+        putSetting.run('llm_provider', payload.provider, now);
+        const preset = PROVIDERS[payload.provider];
+        // 换提供商时把地址和模型重置成该家的预设，省得手填
+        putSetting.run('llm_url', preset.url, now);
+        putSetting.run('llm_model', preset.model, now);
+      }
       if (typeof payload.url === 'string') putSetting.run('llm_url', payload.url.trim(), now);
       if (typeof payload.model === 'string') putSetting.run('llm_model', payload.model.trim(), now);
       // 密钥传了才改，传空字符串不动，避免脱敏显示被写回去
@@ -811,8 +849,9 @@ const server = http.createServer(async (req, res) => {
 - summary：分条写「做了什么 / 卡在哪 / 结论」，总共不超过 220 字，用换行分隔
 - category：从 编程、运维、设计、论文、其他 里选一个
 - project：如果明显属于某个项目（lingluan-blog 博客 / chaoxing-ai 超星 / neural-memory 记忆系统 / aurora 音频），写项目标识，否则空字符串
-- pitfalls：这次踩过的坑，一到三条，每条一句话。没有就给空数组
-- decisions：做过的取舍，零到两条。没有就给空数组
+- pitfalls：这次踩过的坑，一到三条，每条是 {"title": "十个字以内概括", "detail": "现象、原因、修法"}。没有就给空数组
+- decisions：做过的取舍，零到两条，每条是 {"title": "十个字以内概括", "detail": "选了什么、放弃了什么、为什么"}。没有就给空数组
+- preferences：从对话里能看出的用户习惯与偏好，零到三条，每条 {"title": "偏好概括", "detail": "具体表现，他明确反对什么、反复要求什么"}。只写有证据的，不要臆测
 
 对话：
 ${session.raw.slice(0, 12000)}`,
@@ -826,14 +865,19 @@ ${session.raw.slice(0, 12000)}`,
           db.prepare('UPDATE sessions SET status = ?, summary = ?, summarized_at = ? WHERE id = ?')
             .run('done', JSON.stringify(parsed), nowIso, session.id);
 
+          // 同一场会话重新总结时，先清掉上次生成的条目，否则会越积越多
+          db.prepare("DELETE FROM knowledge WHERE session_id = ? AND kind IN ('progress','pitfall','decision','preference')").run(session.id);
+
           // 落成 knowledge 条目，供 memory_load 读取
           const project = String(parsed.project || session.project || '').slice(0, 48);
           const cat = ['编程', '运维', '设计', '论文', '其他'].includes(parsed.category) ? parsed.category : '编程';
-          upsertKnowledge.run(project, 'progress', String(parsed.title || session.title).slice(0, 120), String(parsed.summary || '').slice(0, 4000), JSON.stringify([cat]), 'done', nowIso, nowIso);
+          upsertKnowledge.run(project, 'progress', String(parsed.title || session.title).slice(0, 120), String(parsed.summary || '').slice(0, 4000), JSON.stringify([cat]), 'done', session.id, nowIso, nowIso);
           for (const pit of (parsed.pitfalls || []).slice(0, 3)) {
-            const text = String(pit || '').trim();
-            if (!text) continue;
-            upsertKnowledge.run(project, 'pitfall', text.slice(0, 100), text.slice(0, 2000), JSON.stringify([cat]), 'active', nowIso, nowIso);
+            const item = typeof pit === 'string' ? { title: pit, detail: '' } : (pit || {});
+            const title = String(item.title || '').trim().slice(0, 100);
+            if (!title) continue;
+            const detail = String(item.detail || '').trim().slice(0, 2000) || title;
+            upsertKnowledge.run(project, 'pitfall', title, detail, JSON.stringify([cat]), 'active', session.id, nowIso, nowIso);
           }
           // 星图需要节点，这里把总结也写成一条神经元（会自动织边）
           try {
@@ -852,10 +896,20 @@ ${session.raw.slice(0, 12000)}`,
             // 神经元写入失败不该让整次总结失败
           }
 
+          for (const pref of (parsed.preferences || []).slice(0, 3)) {
+            const item = typeof pref === 'string' ? { title: pref, detail: '' } : (pref || {});
+            const title = String(item.title || '').trim().slice(0, 100);
+            if (!title) continue;
+            const detail = String(item.detail || '').trim().slice(0, 2000) || title;
+            upsertKnowledge.run(project, 'preference', title, detail, JSON.stringify([cat]), 'active', session.id, nowIso, nowIso);
+          }
+
           for (const dec of (parsed.decisions || []).slice(0, 2)) {
-            const text = String(dec || '').trim();
-            if (!text) continue;
-            upsertKnowledge.run(project, 'decision', text.slice(0, 100), text.slice(0, 2000), JSON.stringify([cat]), 'active', nowIso, nowIso);
+            const item = typeof dec === 'string' ? { title: dec, detail: '' } : (dec || {});
+            const title = String(item.title || '').trim().slice(0, 100);
+            if (!title) continue;
+            const detail = String(item.detail || '').trim().slice(0, 2000) || title;
+            upsertKnowledge.run(project, 'decision', title, detail, JSON.stringify([cat]), 'active', session.id, nowIso, nowIso);
           }
 
           results.push({ id: session.id, ok: true, title: parsed.title, project, category: cat });
