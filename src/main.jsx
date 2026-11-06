@@ -44,7 +44,7 @@ const { about, notes, agentPaper } = siteContent
 
 const projects = [
   { name: 'chaoxing-ai', type: 'Python · Windows 桌面端', detail: '超星学习通桌面客户端：自动播放、AI 答题、考试作答（Beta）与共享题库，开源免费。', state: '已上线', icon: BookOpen, tone: 'blue', url: 'https://chaoxingxxt.lingluandf.online/', image: 'images/projects/chaoxing-ai.jpg' },
-  { name: 'AURORA-pro', type: 'Android · Magisk / KernelSU', detail: '以设备原厂 Dolby XML 为基底的双扬声器增量调音模块，耳机、蓝牙与 USB 路线保留原厂节点。自带中文移动端 WebUI，可切听感预设、十段 EQ 与空间化，出问题能一键回原厂。', state: 'v5.7.0', icon: Layers3, tone: 'orange', url: 'https://github.com/shisjsji/AURORA-pro', image: 'images/projects/aurora-pro-cover.jpg' },
+  { name: 'AURORA', type: 'Android · LSPosed', detail: '按播放会话挂载的六段均衡叠加，开着空间音频也照样生效。在音轨末端实时处理，不写系统文件、不重启音频服务，关掉就回原厂。', state: 'v1.2.0', icon: Layers3, tone: 'orange', url: 'https://github.com/shisjsji/AURORA', image: 'images/projects/aurora-pro-cover.jpg' },
   { name: 'LumaCurve', type: 'Android · fork', detail: '适配 HyperOS 的自动亮度工具，跟随上游更新。', state: '跟随上游', icon: Moon, tone: 'blue', url: 'https://github.com/shisjsji/LumaCurve' },
   { name: 'Agent 学习日志', type: 'Personal experiment', detail: '把与 Codex、各类 agent 的协作过程整理成可复用的小实验。', state: '进行中', icon: Sparkles, tone: 'blue', url: 'https://github.com/shisjsji' },
 ]
