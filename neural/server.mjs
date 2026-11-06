@@ -1151,7 +1151,10 @@ const server = http.createServer(async (req, res) => {
         const body = String(item.body || '').trim().slice(0, 4000);
         const tags = normalizeTags(item.tags);
         const status = ['active', 'done', 'dropped'].includes(item.status) ? item.status : 'active';
-        upsertKnowledge.run(project, kind, title, body, JSON.stringify(tags), status, now, now);
+        // 注意：upsertKnowledge 是 9 个占位符（project/kind/title/body/tags/status/session_id/created_at/updated_at）。
+        // 少传一个不会报参数错误，只会把后面的值整体前移、末尾留 NULL，所以这里必须逐个对齐。
+        const sessionId = String(item.sessionId || '').slice(0, 64);
+        upsertKnowledge.run(project, kind, title, body, JSON.stringify(tags), status, sessionId, now, now);
         saved += 1;
       }
       sendJSON(res, 200, { ok: true, saved });
