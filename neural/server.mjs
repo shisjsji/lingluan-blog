@@ -120,6 +120,15 @@ db.exec(`
     created_at TEXT NOT NULL,
     last_hit_at TEXT
   );
+
+  -- 每天见过的最大 token 量。本地数据库会清掉老会话，
+  -- 只靠现算的话历史总量会往回缩，这里按天留底再累加。
+  CREATE TABLE IF NOT EXISTS token_days (
+    day TEXT PRIMARY KEY,
+    tokens INTEGER NOT NULL DEFAULT 0,
+    calls INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 const insertNeuron = db.prepare(`
@@ -756,7 +765,15 @@ const server = http.createServer(async (req, res) => {
         sendJSON(res, 200, { ok: true, empty: true });
         return;
       }
-      sendJSON(res, 200, { ok: true, ...JSON.parse(row.payload), snapshotAt: row.created_at });
+      const payload = JSON.parse(row.payload);
+      // all 用只增不减的留底值，days 用服务端累积的，避免老会话被清掉后数字缩水
+      const floorRow = getSetting.get('token_all_floor');
+      if (floorRow) {
+        try { payload.all = JSON.parse(floorRow.value); } catch { /* 保持原值 */ }
+      }
+      const days = db.prepare('SELECT day, tokens FROM token_days ORDER BY day DESC LIMIT 30').all();
+      if (days.length) payload.days = days;
+      sendJSON(res, 200, { ok: true, ...payload, snapshotAt: row.created_at });
       return;
     }
 
@@ -892,7 +909,42 @@ const server = http.createServer(async (req, res) => {
       db.prepare('INSERT INTO token_stats (payload, created_at) VALUES (?, ?)').run(JSON.stringify(payload), new Date().toISOString());
       // 只保留最近 200 次快照
       db.prepare('DELETE FROM token_stats WHERE id NOT IN (SELECT id FROM token_stats ORDER BY id DESC LIMIT 200)').run();
-      sendJSON(res, 200, { ok: true });
+
+      // 客户端是从「本地还留着的会话」里现算总量的，MiMo 一清老会话，数字就往下掉。
+      // 所以按天记下见过的最大值，历史总量改成这些天的累加，只增不减。
+      const now = new Date().toISOString();
+      const putDay = db.prepare(`
+        INSERT INTO token_days (day, tokens, calls, updated_at) VALUES (?, ?, ?, ?)
+        ON CONFLICT(day) DO UPDATE SET
+          tokens = MAX(token_days.tokens, excluded.tokens),
+          calls = MAX(token_days.calls, excluded.calls),
+          updated_at = excluded.updated_at
+      `);
+      for (const d of payload.days || []) {
+        if (!d || !d.day) continue;
+        putDay.run(String(d.day).slice(0, 10), Number(d.tokens) || 0, 0, now);
+      }
+      if (payload.today && Number(payload.today.total)) {
+        const today = now.slice(0, 10);
+        putDay.run(today, Number(payload.today.total), Number(payload.today.calls) || 0, now);
+      }
+
+      // 上报的 all 也留个下限，防止它比按天累加还小
+      const floorRow = getSetting.get('token_all_floor');
+      let floor = null;
+      try { floor = floorRow ? JSON.parse(floorRow.value) : null; } catch { floor = null; }
+      const reported = payload.all || {};
+      const daySum = db.prepare('SELECT COALESCE(SUM(tokens), 0) AS s FROM token_days').get().s;
+      const merged = {
+        total: Math.max(Number(floor?.total) || 0, Number(reported.total) || 0, daySum),
+        input: Math.max(Number(floor?.input) || 0, Number(reported.input) || 0),
+        output: Math.max(Number(floor?.output) || 0, Number(reported.output) || 0),
+        cache: Math.max(Number(floor?.cache) || 0, Number(reported.cache) || 0),
+        calls: Math.max(Number(floor?.calls) || 0, Number(reported.calls) || 0),
+      };
+      putSetting.run('token_all_floor', JSON.stringify(merged), now);
+
+      sendJSON(res, 200, { ok: true, all: merged.total });
       return;
     }
 

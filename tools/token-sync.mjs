@@ -91,7 +91,9 @@ const payload = {
 
 console.log('今日  ' + acc.today.total.toLocaleString() + ' tokens / ' + acc.today.calls + ' 次调用');
 console.log('本月  ' + acc.month.total.toLocaleString() + ' tokens');
-console.log('历史  ' + acc.all.total.toLocaleString() + ' tokens');
+// 注意：这个数只是「本地数据库还留着的消息」之和，MiMo 清掉老会话后它会变小。
+// 真正对外显示的历史总量由服务端按天累计（token_days），只增不减。
+console.log('本地可算  ' + acc.all.total.toLocaleString() + ' tokens');
 console.log('模型  ' + topModels.map((m) => `${m.model}:${m.tokens.toLocaleString()}`).join('  '));
 
 if (DRY) process.exit(0);

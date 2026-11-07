@@ -39,6 +39,18 @@ function clean(text) {
 
 if (!fs.existsSync(DB_PATH)) { console.error('找不到数据库:', DB_PATH); process.exit(1); }
 
+// 只截开头会把长对话的结论整段丢掉，而结论正是要记的东西。
+// 超长时留开头加结尾，中间省略——开头是最初的目标，结尾是最后成立的结论。
+const MAX_RAW = 60000;
+const HEAD_CHARS = 16000;
+
+function excerpt(text) {
+  if (text.length <= MAX_RAW) return text;
+  const tailChars = MAX_RAW - HEAD_CHARS - 40;
+  const skipped = Math.round((text.length - HEAD_CHARS - tailChars) / 1000);
+  return `${text.slice(0, HEAD_CHARS)}\n\n[中间省略约 ${skipped}k 字]\n\n${text.slice(-tailChars)}`;
+}
+
 let state = {};
 if (fs.existsSync(STATE_PATH)) {
   try { state = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8')); } catch { state = {}; }
@@ -88,7 +100,7 @@ for (const session of sessions) {
     id: session.id,
     title: session.title || '',
     project: detectProject(session.directory, session.title),
-    raw: raw.slice(0, 60000),
+    raw: excerpt(raw),
     messageCount: messages.length,
     signature,
   });
