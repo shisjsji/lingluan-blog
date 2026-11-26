@@ -1,16 +1,19 @@
-/* 下载量徽标
+/* 下载量行内徽标
  *
- * 贴在下载按钮旁边，显示历史累计下载次数，有真实装机数据的再加一个在用设备数。
- * 不做浮动面板，不遮挡页面内容。
+ * 贴在真实下载入口旁边，显示历史累计下载次数；有真实去重装机数据的站点再补一个在用数。
+ * 不做独立面板，不做今日/月报，不显示浏览或点击数字。
+ *
+ * 口径：
+ *   「N 已下载」永远来自服务器上的真实传输统计（下载日志折算），点击不参与累加。
+ *   点下载的瞬间只给一个临时的「+1 下载中」提示，等接口确认总数上涨后它自动消失，
+ *   超时没等到就变成「+1 待确认」并淡出。它不改变 N，也不做任何加成。
  *
  * 用法：
- *   <script src="https://lingluandf.online/stats-widget.js" data-site="aurora" defer></script>
+ *   <script src=".../stats-widget.js?v=3" data-site="aurora" defer></script>
+ *   <a href="...apk" data-download-badge="aurora">下载 APK</a>
  *
- * 站点归属按链接判断：/dl/ 归超星，apk 与 /download/ 归 AURORA。
- * 也可以用 data-download-badge="aurora" 明确指定某一块显示哪个站的数
- * （博客的项目卡就是这么用的）。
- *
- * 接口不通、脚本报错、网络断掉，一律静默——页面上什么都不加。
+ * 归属只认两种来源：显式标注 data-download-badge，或经过 host/path 校验的真实包链接。
+ * 接口不通、脚本报错、网络断掉，一律静默——页面照常，徽标留空而不是显示 0。
  */
 (function () {
   'use strict';
@@ -19,40 +22,36 @@
   if (!script) return;
 
   var DEFAULT_SITE = script.getAttribute('data-site') || '';
-  var API = (script.src ? new URL(script.src).origin : location.origin) + '/neural-api';
+  var ORIGIN = script.src ? new URL(script.src).origin : location.origin;
+  var API = ORIGIN + '/neural-api';
 
-  // ---------- 匿名访客号（保留浏览统计，只是不再展示点击数字）----------
-  function visitorId() {
-    try {
-      var KEY = 'sw_vid_v1';
-      var id = localStorage.getItem(KEY);
-      if (!id || id.length < 8) {
-        id = '';
-        var bytes = new Uint8Array(9);
-        (window.crypto || window.msCrypto).getRandomValues(bytes);
-        for (var i = 0; i < bytes.length; i += 1) id += ('0' + bytes[i].toString(16)).slice(-2);
-        localStorage.setItem(KEY, id);
-      }
-      return id;
-    } catch (e) {
-      return '';
-    }
-  }
+  var SLOW_POLL = 60000;   // 平时 60 秒对齐一次
+  var FAST_POLL = 5000;    // 点过下载之后加快，等确认
+  var FAST_WINDOW = 90000;
+  var PENDING_TO_WAIT = 15000;  // 这么久没确认就改口「待确认」
+  var PENDING_TTL = 120000;     // 再久就淡出
 
-  var VID = visitorId();
+  var reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var stats = null;        // 最后一次确认的响应
+  var reqSeq = 0;
+  var fastUntil = 0;
+  var slowTimer = null;
+  var fastTimer = null;
 
-  function report(type) {
-    if (!VID) return;
-    var body = JSON.stringify({ site: DEFAULT_SITE || 'blog', type: type, vid: VID, path: location.pathname });
-    try {
-      if (navigator.sendBeacon) {
-        var blob = new Blob([body], { type: 'text/plain;charset=UTF-8' });
-        if (navigator.sendBeacon(API + '/stats/event', blob)) return;
-      }
-    } catch (e) { /* 落到下面的兜底 */ }
-    try {
-      fetch(API + '/stats/event', { method: 'POST', body: body, keepalive: true, mode: 'cors' }).catch(function () {});
-    } catch (e) { /* 静默 */ }
+  // ---------- 站点归属 ----------
+  function inferSite(href) {
+    if (!href) return null;
+    var u;
+    try { u = new URL(href, location.href); } catch (e) { return null; }
+    // 只认官方域名，避免把 GitHub、导航、外链误当成下载
+    var host = u.hostname;
+    var official = host === 'lingluandf.online' || host === 'www.lingluandf.online' ||
+                   host === 'aurora.lingluandf.online' || host === 'chaoxingxxt.lingluandf.online';
+    if (!official) return null;
+    if (u.pathname.indexOf('/dl/') === 0 && /\.(exe|zip|apk)$/i.test(u.pathname)) return 'chaoxing';
+    if (u.pathname.indexOf('/download/') === 0 && /\.apk$/i.test(u.pathname)) return 'aurora';
+    if (u.pathname.indexOf('/aurora/') === 0 && /\.apk$/i.test(u.pathname)) return 'aurora';
+    return null;
   }
 
   // ---------- 数字格式 ----------
@@ -65,93 +64,311 @@
     return String(n);
   }
 
-  // ---------- 样式：跟着站点自己的字体和颜色走 ----------
+  // ---------- 机械翻页：上半片翻出、下半片翻入 ----------
+  function flip(el, text, half) {
+    if (!el) return;
+    if (!reduceMotion || reduceMotion.matches || typeof el.animate !== 'function') {
+      el.textContent = text;
+      return;
+    }
+    if (el._flipping) {
+      el.textContent = text;
+      return;
+    }
+    el._flipping = true;
+    var out = el.animate(
+      [{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-90deg)' }],
+      { duration: half, easing: 'cubic-bezier(.4,0,.9,.6)' }
+    );
+    out.onfinish = function () {
+      el.textContent = text;
+      var back = el.animate(
+        [{ transform: 'rotateX(90deg)' }, { transform: 'rotateX(0deg)' }],
+        { duration: half, easing: 'cubic-bezier(.1,.6,.4,1)' }
+      );
+      back.onfinish = function () { el._flipping = false; };
+    };
+  }
+
+  // ---------- 样式 ----------
   var CSS = [
-    '.swb{display:inline-flex;align-items:baseline;gap:5px;margin-left:10px;',
-    '  font:inherit;font-size:.82em;line-height:1.25;letter-spacing:.01em;white-space:nowrap;',
-    '  color:inherit;opacity:.62;vertical-align:middle;font-variant-numeric:tabular-nums;',
-    '  -webkit-font-smoothing:antialiased}',
-    '.swb em{font-style:normal;font-weight:600;opacity:1}',
-    '.swb .sep{opacity:.45}',
-    '@media(max-width:600px){.swb{font-size:.78em;margin-left:8px}}',
+    '.swb{display:inline-flex;align-items:baseline;gap:6px;margin-left:10px;',
+    '  font:inherit;font-size:.95em;line-height:1.25;letter-spacing:.01em;white-space:nowrap;',
+    '  color:inherit;opacity:.82;vertical-align:middle;font-variant-numeric:tabular-nums}',
+    '.swb-flip{display:inline-block;perspective:240px;transform-style:preserve-3d}',
+    '.swb-n{display:inline-block;font-weight:650;transform-origin:50% 50%;backface-visibility:hidden;',
+    '  will-change:transform;opacity:1}',
+    '.swb-u{font-size:.92em;opacity:.8}',
+    '.swb-plus{display:inline-block;font-size:.85em;font-weight:600;color:var(--swb-plus,#b45309);',
+    '  opacity:0;transform:translateY(1px);transition:opacity .16s ease;margin-left:2px}',
+    '.swb-plus[data-on="1"]{opacity:1}',
+    '.swb[data-empty="1"]{display:none}',
+    '@media(max-width:600px){.swb{font-size:.9em;margin-left:8px}}',
+    '@media(prefers-reduced-motion:reduce){.swb-plus{transition:none}}',
   ].join('');
 
-  var style = document.createElement('style');
-  style.textContent = CSS;
-  document.head.appendChild(style);
+  var styleEl = document.createElement('style');
+  styleEl.setAttribute('data-swb', '1');
+  styleEl.textContent = CSS;
+  document.head.appendChild(styleEl);
 
-  // ---------- 找要贴徽标的元素 ----------
-  function siteOfHref(href) {
-    if (!href) return null;
-    if (/\/dl\//.test(href)) return 'chaoxing';
-    if (/\/download\//.test(href) || /\.apk(\?|$)/i.test(href) || /\/aurora\//.test(href)) return 'aurora';
-    return null;
+  // ---------- 徽标构建 ----------
+  function buildBadge(anchor, site) {
+    var badge = document.createElement('span');
+    badge.className = 'swb';
+    badge.setAttribute('data-site', site);
+    badge.setAttribute('data-empty', '1');
+
+    var numWrap = document.createElement('span');
+    numWrap.className = 'swb-flip';
+    var num = document.createElement('span');
+    num.className = 'swb-n';
+    numWrap.appendChild(num);
+    badge.appendChild(numWrap);
+
+    var unit = document.createElement('span');
+    unit.className = 'swb-u';
+    unit.textContent = '已下载';
+    badge.appendChild(unit);
+
+    var plus = document.createElement('span');
+    plus.className = 'swb-plus';
+    badge.appendChild(plus);
+
+    anchor.insertAdjacentElement('afterend', badge);
+    return { badge: badge, num: num, unit: unit, plus: plus };
+  }
+
+  // 在用数单独一个徽标，只有真实去重数据才出现
+  function buildInstallBadge(prevBadge, site) {
+    var badge = document.createElement('span');
+    badge.className = 'swb';
+    badge.setAttribute('data-site', site);
+    badge.setAttribute('data-kind', 'installs');
+
+    var numWrap = document.createElement('span');
+    numWrap.className = 'swb-flip';
+    var num = document.createElement('span');
+    num.className = 'swb-n';
+    numWrap.appendChild(num);
+    badge.appendChild(numWrap);
+
+    var unit = document.createElement('span');
+    unit.className = 'swb-u';
+    unit.textContent = '在用';
+    badge.appendChild(unit);
+
+    prevBadge.insertAdjacentElement('afterend', badge);
+    return { badge: badge, num: num, unit: unit };
+  }
+
+  var parts = [];  // {anchor, site, dl:{...}, inst:{...}}
+
+  function ensureParts(anchor, site) {
+    var entry = null;
+    for (var i = 0; i < parts.length; i += 1) {
+      if (parts[i].anchor === anchor) { entry = parts[i]; break; }
+    }
+    if (entry) return entry;
+
+    entry = { anchor: anchor, site: site, dl: null, inst: null };
+    parts.push(entry);
+    return entry;
   }
 
   function targets() {
-    var list = [];
-    // 显式指定的块（博客项目卡之类）
-    document.querySelectorAll('[data-download-badge]').forEach(function (el) {
-      list.push({ el: el, site: el.getAttribute('data-download-badge') });
-    });
-    // 下载链接：跳过导航栏里的那个，那儿太挤
-    document.querySelectorAll('a[href]').forEach(function (a) {
-      if (a.closest('nav')) return;
-      if (a.hasAttribute('data-download-badge')) return;
-      var site = siteOfHref(a.getAttribute('href'));
-      if (site) list.push({ el: a, site: site });
-    });
-    return list;
+    var out = [];
+    var seen = [];
+    function push(el, site) {
+      if (!el || seen.indexOf(el) !== -1) return;
+      seen.push(el);
+      out.push({ el: el, site: site });
+    }
+
+    // 1) 显式标注
+    var marked = document.querySelectorAll('[data-download-badge]');
+    for (var i = 0; i < marked.length; i += 1) {
+      var el = marked[i];
+      var site = el.getAttribute('data-download-badge');
+      if (site === 'auto') site = inferSite(el.getAttribute('href'));
+      if (site) push(el, site);
+    }
+
+    // 2) 经过 host/path 校验的真实包链接，跳过导航栏
+    var anchors = document.querySelectorAll('a[href]');
+    for (var j = 0; j < anchors.length; j += 1) {
+      var a = anchors[j];
+      if (a.hasAttribute('data-download-badge')) continue;
+      if (a.closest && a.closest('nav')) continue;
+      var inferred = inferSite(a.getAttribute('href'));
+      if (inferred) push(a, inferred);
+    }
+    return out;
   }
 
-  var nodes = [];
+  function siteStats(site) {
+    if (!stats || !stats.sites) return null;
+    var s = stats.sites[site];
+    if (!s || !s.total) return null;
+    return s;
+  }
 
-  function paint(stats) {
-    targets().forEach(function (t) {
-      if (!t.el || !t.el.parentNode) return;
-      var s = stats[t.site];
-      if (!s || !s.downloads) return;
+  // ---------- 渲染 ----------
+  function paint() {
+    if (!stats) return;
 
-      var badge = t.el.nextElementSibling;
-      if (!badge || !badge.classList || !badge.classList.contains('swb')) {
-        badge = document.createElement('span');
-        badge.className = 'swb';
-        t.el.insertAdjacentElement('afterend', badge);
+    var list = targets();
+    for (var i = 0; i < list.length; i += 1) {
+      var t = list[i];
+      var entry = ensureParts(t.el, t.site);
+      var s = siteStats(t.site);
+      if (!s) continue;
+
+      var total = typeof s.total.downloads === 'number' ? s.total.downloads : null;
+
+      if (!entry.dl) entry.dl = buildBadge(t.el, t.site);
+
+      if (total === null) {
+        entry.dl.badge.setAttribute('data-empty', '1');
+      } else {
+        entry.dl.badge.removeAttribute('data-empty');
+        var text = fmt(total);
+        if (entry.dl.num.textContent !== text) {
+          flip(entry.dl.num, text, 130);   // 260ms 一翻
+        }
+        // 总数涨了，说明刚才那次下载已被服务器确认
+        if (entry.pending && entry.pending.base !== null && total > entry.pending.base) {
+          clearPending(entry);
+        }
+        entry.lastTotal = total;
       }
 
-      var html = '已下载 <em>' + fmt(s.downloads) + '</em>';
-      if (s.installs) html += '<span class="sep">·</span>在用 <em>' + fmt(s.installs) + '</em>';
-      if (badge.innerHTML !== html) badge.innerHTML = html;
-      nodes.push({ el: t.el, badge: badge });
-    });
+      // 在用数：只有接口给得出真实去重值时才显示
+      var inst = typeof s.installs === 'number' ? s.installs : null;
+      if (inst !== null) {
+        if (!entry.inst) entry.inst = buildInstallBadge(entry.dl.badge, t.site);
+        var itext = fmt(inst);
+        if (entry.inst.num.textContent !== itext) flip(entry.inst.num, itext, 130);
+      }
+    }
   }
 
+  // ---------- 点击后的临时反馈（不参与累加）----------
+  function clearPending(entry) {
+    if (!entry || !entry.pending) return;
+    clearTimeout(entry.pending.waitTimer);
+    clearTimeout(entry.pending.killTimer);
+    entry.pending = null;
+    if (entry.dl && entry.dl.plus) {
+      var plus = entry.dl.plus;
+      plus.setAttribute('data-on', '0');
+      setTimeout(function () {
+        if (plus.getAttribute('data-on') === '0') plus.textContent = '';
+      }, 200);
+    }
+  }
+
+  function showPending(entry) {
+    if (!entry || !entry.dl) return;
+    var plus = entry.dl.plus;
+    // 基线取点击这一刻接口给的值；拿不到就不按数值判断，只等超时
+    var clickStats = siteStats(entry.site);
+    var base = (clickStats && clickStats.total && typeof clickStats.total.downloads === 'number')
+      ? clickStats.total.downloads
+      : null;
+
+    if (entry.pending) {
+      // 连点：不叠加，只把计时器续上
+      clearTimeout(entry.pending.killTimer);
+      entry.pending.killTimer = setTimeout(function () { clearPending(entry); }, PENDING_TTL);
+      return;
+    }
+
+    entry.pending = { base: base, waitTimer: null, killTimer: null };
+    plus.textContent = '+1 下载中';
+    plus.setAttribute('data-on', '1');
+    if (!reduceMotion || !reduceMotion.matches) {
+      // 从 0 翻到 +1 的那一下
+      plus.animate(
+        [{ transform: 'rotateX(-90deg)', opacity: 0 }, { transform: 'rotateX(0deg)', opacity: 1 }],
+        { duration: 240, easing: 'cubic-bezier(.2,.7,.3,1)' }
+      );
+    }
+
+    entry.pending.waitTimer = setTimeout(function () {
+      if (entry.pending && plus.getAttribute('data-on') === '1') plus.textContent = '+1 待确认';
+    }, PENDING_TO_WAIT);
+
+    entry.pending.killTimer = setTimeout(function () { clearPending(entry); }, PENDING_TTL);
+
+    // 这段时间里多问几次，确认后就能及时翻到新数字
+    fastUntil = Date.now() + FAST_WINDOW;
+    scheduleFast();
+  }
+
+  function bindClick(el, site) {
+    if (el.dataset.swbBound === '1') return;
+    el.dataset.swbBound = '1';
+    el.addEventListener('click', function () {
+      var entry = ensureParts(el, site);
+      showPending(entry);
+      // 不 preventDefault、不拦截、不等待：浏览器照常发起下载
+    }, { passive: true });
+  }
+
+  // ---------- 取数 ----------
   function load() {
-    if (document.hidden) return;
+    if (document.hidden && stats) return;
+    var mySeq = ++reqSeq;
     fetch(API + '/stats/summary', { mode: 'cors', cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
-        if (!d || !d.ok || !d.sites) return;
-        paint(d.sites);
+        if (mySeq !== reqSeq) return;     // 晚到的旧响应直接丢掉
+        if (!d || !d.ok || !d.sites) return;  // 失败保留上一次确认值，不写 0
+        stats = d;
+        paint();
       })
-      .catch(function () { /* 静默 */ });
+      .catch(function () { /* 静默：保留已有确认值 */ });
+  }
+
+  function scheduleFast() {
+    if (fastTimer) return;
+    fastTimer = setInterval(function () {
+      if (Date.now() > fastUntil) {
+        clearInterval(fastTimer);
+        fastTimer = null;
+        return;
+      }
+      load();
+    }, FAST_POLL);
+  }
+
+  // ---------- 扫描：路由切换、异步渲染都要能补上 ----------
+  var scanTimer = null;
+  function scan() {
+    var list = targets();
+    for (var i = 0; i < list.length; i += 1) bindClick(list[i].el, list[i].site);
+    if (stats) paint();
+    else load();
+  }
+
+  function scheduleScan() {
+    if (scanTimer) clearTimeout(scanTimer);
+    scanTimer = setTimeout(scan, 120);
   }
 
   function boot() {
-    // 浏览统计：一个会话一条，够用来算历史访问量
-    try {
-      if (!sessionStorage.getItem('sw_sent_v1')) {
-        sessionStorage.setItem('sw_sent_v1', '1');
-        report('view');
-      }
-    } catch (e) {
-      report('view');
-    }
+    scan();
+    slowTimer = setInterval(load, SLOW_POLL);
 
-    load();
-    // 字体和布局可能后加载完，晚一点再补一次，避免漏贴
-    setTimeout(load, 1200);
-    setInterval(load, 60000);
+    if (window.MutationObserver) {
+      var mo = new MutationObserver(scheduleScan);
+      mo.observe(document.documentElement, { childList: true, subtree: true });
+    }
+    window.addEventListener('popstate', scheduleScan);
+    window.addEventListener('hashchange', scheduleScan);
+    // 字体/布局晚到，补扫一次
+    setTimeout(scheduleScan, 800);
   }
 
   if (document.readyState === 'loading') {
