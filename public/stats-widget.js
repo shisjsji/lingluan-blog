@@ -94,11 +94,13 @@
   var CSS = [
     '.swb{display:inline-flex;align-items:baseline;gap:6px;margin-left:10px;',
     '  font:inherit;font-size:.95em;line-height:1.25;letter-spacing:.01em;white-space:nowrap;',
-    '  color:inherit;opacity:.82;vertical-align:middle;font-variant-numeric:tabular-nums}',
+    '  color:var(--swb-fg,rgba(0,0,0,.7));vertical-align:middle;font-variant-numeric:tabular-nums}',
+    '.swb-n{color:var(--swb-fg-strong,currentColor)}',
+    '.swb-row{display:flex;align-items:center}',
     '.swb-flip{display:inline-block;perspective:240px;transform-style:preserve-3d}',
     '.swb-n{display:inline-block;font-weight:650;transform-origin:50% 50%;backface-visibility:hidden;',
-    '  will-change:transform;opacity:1}',
-    '.swb-u{font-size:.92em;opacity:.8}',
+    '  will-change:transform}',
+    '.swb-u{font-size:.92em;opacity:.85}',
     '.swb-plus{display:inline-block;font-size:.85em;font-weight:600;color:var(--swb-plus,#b45309);',
     '  opacity:0;transform:translateY(1px);transition:opacity .16s ease;margin-left:2px}',
     '.swb-plus[data-on="1"]{opacity:1}',
@@ -140,6 +142,67 @@
 
     anchor.insertAdjacentElement('afterend', badge);
     return { badge: badge, num: num, unit: unit, plus: plus };
+  }
+
+  // 按徽标背后的底色选深浅：深色区块上不能再用深色字
+  function pickInk(el, alpha) {
+    var node = el.parentElement;
+    while (node && node !== document.documentElement) {
+      var bg = window.getComputedStyle(node).backgroundColor || '';
+      var m = bg.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?\s*\)/);
+      if (m) {
+        var a = m[4] === undefined ? 1 : parseFloat(m[4]);
+        if (a > 0.4) {
+          var lum = (0.2126 * Number(m[1]) + 0.7152 * Number(m[2]) + 0.0722 * Number(m[3])) / 255;
+          return 'rgba(' + (lum > 0.55 ? '0,0,0' : '255,255,255') + ',' + alpha + ')';
+        }
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  // 有的站把按钮放在纵向 flex 里，徽标插进去会被挤到下一行。
+  // 那就把按钮和徽标包成一行；其它情况保持原结构不动。
+  function fit(anchor, badge) {
+    if (!anchor.isConnected || !badge.isConnected) return;
+
+    if (!anchor.dataset.swbInk) {
+      var fg = pickInk(badge, 0.72);
+      if (fg) {
+        badge.style.setProperty('--swb-fg', fg);
+        badge.style.setProperty('--swb-fg-strong', fg.replace(/[^,]*\)$/, '0.94)'));
+        anchor.dataset.swbInk = '1';
+      }
+    }
+
+    if (anchor.parentElement && anchor.parentElement.classList.contains('swb-row')) return;
+
+    var parent = anchor.parentElement;
+    if (!parent) return;
+    var pcs = window.getComputedStyle(parent);
+    var stacks = (pcs.display.indexOf('flex') !== -1 && pcs.flexDirection.indexOf('column') === 0) ||
+                 pcs.display.indexOf('grid') !== -1;
+    if (!stacks) return;
+
+    var ar = anchor.getBoundingClientRect();
+    var br = badge.getBoundingClientRect();
+    if (!ar.height || !br.height) return;
+    if (Math.abs(br.top - ar.top) <= ar.height / 2) return;   // 同一行，不用动
+
+    // 连同紧跟其后的徽标（比如「在用」）一起挪进包装层
+    var following = [];
+    var sib = badge.nextElementSibling;
+    while (sib && sib.classList && sib.classList.contains('swb')) { following.push(sib); sib = sib.nextElementSibling; }
+
+    var wasStretched = ar.width >= parent.clientWidth - 2;
+    var wrap = document.createElement('span');
+    wrap.className = 'swb-row';
+    parent.insertBefore(wrap, anchor);
+    wrap.appendChild(anchor);
+    wrap.appendChild(badge);
+    following.forEach(function (n) { wrap.appendChild(n); });
+    if (wasStretched) anchor.style.flex = '1 1 auto';
   }
 
   // 在用数单独一个徽标，只有真实去重数据才出现
@@ -229,7 +292,10 @@
 
       var total = typeof s.total.downloads === 'number' ? s.total.downloads : null;
 
-      if (!entry.dl) entry.dl = buildBadge(t.el, t.site);
+      if (!entry.dl) {
+        entry.dl = buildBadge(t.el, t.site);
+        scheduleFit(t.el, entry.dl.badge);
+      }
 
       if (total === null) {
         entry.dl.badge.setAttribute('data-empty', '1');
@@ -249,7 +315,10 @@
       // 在用数：只有接口给得出真实去重值时才显示
       var inst = typeof s.installs === 'number' ? s.installs : null;
       if (inst !== null) {
-        if (!entry.inst) entry.inst = buildInstallBadge(entry.dl.badge, t.site);
+        if (!entry.inst) {
+          entry.inst = buildInstallBadge(entry.dl.badge, t.site);
+          scheduleFit(entry.dl.badge, entry.inst.badge);
+        }
         var itext = fmt(inst);
         if (entry.inst.num.textContent !== itext) flip(entry.inst.num, itext, 130);
       }
@@ -317,6 +386,10 @@
       showPending(entry);
       // 不 preventDefault、不拦截、不等待：浏览器照常发起下载
     }, { passive: true });
+  }
+
+  function scheduleFit(anchor, badge) {
+    requestAnimationFrame(function () { fit(anchor, badge); });
   }
 
   // ---------- 取数 ----------
