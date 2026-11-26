@@ -20,6 +20,8 @@
   var SITE = script.getAttribute('data-site') || 'blog';
   var ACCENT = script.getAttribute('data-accent') || '#6b7280';
   var ACCENT_DARK = script.getAttribute('data-accent-dark') || ACCENT;
+  // scope=total：博客是总入口，展示三站合计而不是自己那一格
+  var SCOPE = script.getAttribute('data-scope') || 'site';
   var API = (script.src ? new URL(script.src).origin : location.origin) + '/neural-api';
 
   // ---------- 匿名访客号 ----------
@@ -169,7 +171,8 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
         if (!d || !d.ok || !d.sites || !d.sites[SITE]) return;
-        var mine = d.sites[SITE];
+        var mine = SCOPE === 'total' ? d.total : d.sites[SITE];
+        if (!mine) return;
         state.pv = (mine.total && mine.total.pv) || 0;
         state.click = (mine.total && mine.total.click) || 0;
         state.dl = (mine.total && mine.total.downloads) || 0;
