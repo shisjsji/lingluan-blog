@@ -118,6 +118,9 @@
     badge.className = 'swb';
     badge.setAttribute('data-site', site);
     badge.setAttribute('data-empty', '1');
+    // 字号跟按钮本身走，而不是父容器的字号
+    var anchorSize = parseFloat(window.getComputedStyle(anchor).fontSize);
+    if (anchorSize) badge.style.fontSize = (anchorSize * 0.95).toFixed(1) + 'px';
 
     var numWrap = document.createElement('span');
     numWrap.className = 'swb-flip';
