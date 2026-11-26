@@ -148,14 +148,15 @@
   function pickInk(el, alpha) {
     var node = el.parentElement;
     while (node && node !== document.documentElement) {
-      var bg = window.getComputedStyle(node).backgroundColor || '';
-      var m = bg.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?\s*\)/);
-      if (m) {
-        var a = m[4] === undefined ? 1 : parseFloat(m[4]);
-        if (a > 0.4) {
-          var lum = (0.2126 * Number(m[1]) + 0.7152 * Number(m[2]) + 0.0722 * Number(m[3])) / 255;
-          return 'rgba(' + (lum > 0.55 ? '0,0,0' : '255,255,255') + ',' + alpha + ')';
-        }
+      var cs = window.getComputedStyle(node);
+      var m = (cs.backgroundColor || "").match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s\/]+([\d.]+))?\s*\)/);
+      if (!m || (m[4] !== undefined && parseFloat(m[4]) <= 0.4)) {
+        // 渐变底（例如 linear-gradient(160deg, rgb(11,11,15), …)）取它的第一个色标
+        m = (cs.backgroundImage || "").match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s\/]+([\d.]+))?\s*\)/);
+      }
+      if (m && (m[4] === undefined || parseFloat(m[4]) > 0.4)) {
+        var lum = (0.2126 * Number(m[1]) + 0.7152 * Number(m[2]) + 0.0722 * Number(m[3])) / 255;
+        return "rgba(" + (lum > 0.55 ? "0,0,0" : "255,255,255") + "," + alpha + ")";
       }
       node = node.parentElement;
     }
