@@ -212,6 +212,9 @@
     badge.className = 'swb';
     badge.setAttribute('data-site', site);
     badge.setAttribute('data-kind', 'installs');
+    // 和「已下载」保持同一字号
+    var prevSize = parseFloat(window.getComputedStyle(prevBadge).fontSize);
+    if (prevSize) badge.style.fontSize = prevSize.toFixed(1) + 'px';
 
     var numWrap = document.createElement('span');
     numWrap.className = 'swb-flip';
