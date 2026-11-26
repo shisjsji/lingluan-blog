@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createAtlas } from './atlas.mjs';
 
 const PORT = Number(process.env.PORT || 3002);
 const DB_PATH = process.env.DB_PATH || '/opt/apps/neural/data/neural.db';
@@ -129,6 +130,46 @@ db.exec(`
     calls INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL
   );
+
+  -- 站点点击统计。页面主动上报，爬虫不执行 JS 所以进不来。
+  -- vid 是浏览器本地生成的匿名访客号，用来去重——真实 IP 在 stream 转发时丢了，只能靠它。
+  CREATE TABLE IF NOT EXISTS site_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    site TEXT NOT NULL,
+    type TEXT NOT NULL,
+    vid TEXT NOT NULL DEFAULT '',
+    path TEXT NOT NULL DEFAULT '',
+    day TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_site_events_day ON site_events(day, site, type);
+
+  -- 真实传输量，由 nginx 日志增量扫描写入（同一天累加）
+  CREATE TABLE IF NOT EXISTS download_facts (
+    site TEXT NOT NULL,
+    file TEXT NOT NULL,
+    size INTEGER NOT NULL DEFAULT 0,
+    bytes INTEGER NOT NULL DEFAULT 0,
+    requests INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (site, file)
+  );
+
+  -- 日志读到哪儿了，保证增量、幂等
+  CREATE TABLE IF NOT EXISTS download_state (
+    logfile TEXT PRIMARY KEY,
+    offset INTEGER NOT NULL DEFAULT 0,
+    inode TEXT NOT NULL DEFAULT ''
+  );
+
+  -- 真实装机/在用设备数。目前只有超星题库有去重标识（user_hash），
+  -- AURORA 的反馈上报没有设备号，去不了重，所以那边这一项留空而不是估一个数。
+  CREATE TABLE IF NOT EXISTS site_installs (
+    site TEXT PRIMARY KEY,
+    count INTEGER NOT NULL DEFAULT 0,
+    source TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL
+  );
 `);
 
 const insertNeuron = db.prepare(`
@@ -139,6 +180,7 @@ const insertSynapse = db.prepare(`
   INSERT OR IGNORE INTO synapses (source, target, kind, weight, created_at) VALUES (?, ?, ?, ?, ?)
 `);
 const selectByUid = db.prepare('SELECT * FROM neurons WHERE uid = ?');
+const atlas = createAtlas(db);
 const selectAll = db.prepare('SELECT * FROM neurons ORDER BY created_at ASC, id ASC');
 const selectSynapses = db.prepare('SELECT source, target, kind, weight FROM synapses');
 const selectRecent = db.prepare('SELECT * FROM neurons ORDER BY created_at DESC, id DESC LIMIT ?');
@@ -542,7 +584,7 @@ function recordNeuron(input) {
   const tags = normalizeTags(input.tags);
   const summary = String(input.summary || '').trim().slice(0, 400);
   const sessionId = input.sessionId ? String(input.sessionId).slice(0, 64) : null;
-  const category = ['编程', '论文', '杂项'].includes(input.category) ? input.category : '编程';
+  const category = input.category === '杂项' ? '其他' : ['编程', '运维', '设计', '论文', '其他'].includes(input.category) ? input.category : '其他';
   const project = String(input.project || '').trim().slice(0, 24);
   const kind = ['dialog', 'tool', 'note', 'insight'].includes(input.kind) ? input.kind : 'dialog';
   const weight = Math.min(3, Math.max(0.3, Number(input.weight) || 1));
@@ -565,6 +607,129 @@ function recordNeuron(input) {
 
   broadcast('neuron', { node, edges });
   return { node, edges };
+}
+
+// ---------- 站点统计 ----------
+
+const SITES = ['blog', 'aurora', 'chaoxing'];
+const cleanSite = (v) => (SITES.includes(String(v)) ? String(v) : 'blog');
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+const insertSiteEvent = db.prepare(`
+  INSERT INTO site_events (site, type, vid, path, day, created_at) VALUES (?, ?, ?, ?, ?, ?)
+`);
+const countEvents = db.prepare(`
+  SELECT site, type, COUNT(*) AS n, COUNT(DISTINCT vid) AS uv FROM site_events GROUP BY site, type
+`);
+const countEventsToday = db.prepare(`
+  SELECT site, type, COUNT(*) AS n, COUNT(DISTINCT vid) AS uv FROM site_events WHERE day = ? GROUP BY site, type
+`);
+const selectDownloads = db.prepare('SELECT site, file, size, bytes, requests FROM download_facts');
+const selectInstalls = db.prepare('SELECT site, count FROM site_installs');
+const globalUv = db.prepare("SELECT COUNT(DISTINCT vid) AS uv FROM site_events WHERE type = ?");
+const globalUvToday = db.prepare("SELECT COUNT(DISTINCT vid) AS uv FROM site_events WHERE type = ? AND day = ?");
+
+// 同一访客的重复上报要挡住，否则刷一下就多一条，数字毫无意义。
+// 真实 IP 在 stream 转发时丢了，能用的去重键只有浏览器本地的 vid。
+const VIEW_GAP = 30 * 60 * 1000;
+const CLICK_GAP = 5 * 1000;
+const CLICK_DAY_MAX = 50;
+const eventSeen = new Map();
+const clickPerDay = new Map();
+
+function allowEvent(payload) {
+  const site = cleanSite(payload.site);
+  const type = payload.type === 'download_click' ? 'download_click' : 'view';
+  const vid = String(payload.vid || '').slice(0, 64);
+  if (!vid) return false;
+
+  const key = `${site}|${type}|${vid}`;
+  const now = Date.now();
+  const last = eventSeen.get(key);
+
+  if (type === 'view') {
+    if (last && now - last < VIEW_GAP) return false;
+    eventSeen.set(key, now);
+  } else {
+    if (last && now - last < CLICK_GAP) return false;
+    eventSeen.set(key, now);
+    const dayKey = `${key}|${todayStr()}`;
+    const n = clickPerDay.get(dayKey) || 0;
+    if (n >= CLICK_DAY_MAX) return false;
+    clickPerDay.set(dayKey, n + 1);
+  }
+
+  if (eventSeen.size > 20000) eventSeen.clear();
+  if (clickPerDay.size > 5000) clickPerDay.clear();
+  return true;
+}
+
+let lastPrune = 0;
+function pruneSiteEvents() {
+  const now = Date.now();
+  if (now - lastPrune < 3600 * 1000) return;
+  lastPrune = now;
+  db.prepare("DELETE FROM site_events WHERE day < date('now','-90 day')").run();
+}
+
+function statsSummary() {
+  pruneSiteEvents();
+
+  const blank = () => ({ pv: 0, uv: 0, click: 0, downloads: 0, bytes: 0 });
+  const sites = {};
+  for (const s of SITES) sites[s] = { today: blank(), total: blank() };
+
+  const today = todayStr();
+  for (const row of countEventsToday.all(today)) {
+    const bucket = sites[row.site];
+    if (!bucket) continue;
+    if (row.type === 'view') {
+      bucket.today.pv = row.n;
+      bucket.today.uv = row.uv;
+    } else {
+      bucket.today.click = row.n;
+    }
+  }
+  for (const row of countEvents.all()) {
+    const bucket = sites[row.site];
+    if (!bucket) continue;
+    if (row.type === 'view') {
+      bucket.total.pv = row.n;
+      bucket.total.uv = row.uv;
+    } else {
+      bucket.total.click = row.n;
+    }
+  }
+
+  // 下载按「已传字节 ÷ 包大小」折算成整包，四舍五入到个位
+  for (const row of selectDownloads.all()) {
+    const bucket = sites[row.site];
+    if (!bucket) continue;
+    bucket.total.bytes += row.bytes;
+    bucket.total.downloads += row.size > 0 ? row.bytes / row.size : 0;
+  }
+  for (const s of SITES) sites[s].total.downloads = Math.round(sites[s].total.downloads);
+
+  // 真实装机数（只有拿得到去重标识的站才有）
+  for (const row of selectInstalls.all()) {
+    const bucket = sites[row.site];
+    if (bucket) bucket.installs = row.count;
+  }
+
+  // 合计：点击类相加；UV 必须重新去重，跨站直接把 UV 加起来会把同一个人算两遍
+  const total = { today: blank(), total: blank() };
+  for (const s of SITES) {
+    total.today.pv += sites[s].today.pv;
+    total.today.click += sites[s].today.click;
+    total.total.pv += sites[s].total.pv;
+    total.total.click += sites[s].total.click;
+    total.total.bytes += sites[s].total.bytes;
+    total.total.downloads += sites[s].total.downloads;
+  }
+  total.today.uv = globalUvToday.get('view', today).uv;
+  total.total.uv = globalUv.get('view').uv;
+
+  return { ok: true, updatedAt: new Date().toISOString(), today, sites, total };
 }
 
 // ---------- HTTP ----------
@@ -684,6 +849,17 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    if (p === '/atlas' && req.method === 'GET') {
+      sendJSON(res, 200, { entries: atlas.published() });
+      return;
+    }
+
+    const legacyMap = ['/graph', '/scope', '/stats', '/recent', '/stream'].includes(p) || p.startsWith('/node/');
+    if (legacyMap && !authed(req)) {
+      sendJSON(res, 401, { ok: false, error: '未授权：需要 Bearer token' });
+      return;
+    }
+
     if (p === '/graph' && req.method === 'GET') {
       const project = url.searchParams.get('project');
       const category = url.searchParams.get('category');
@@ -800,6 +976,40 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // ---- 站点点击统计：页面主动上报 ----
+    // 这两个接口公开。写入靠 vid 限流，读取只是个计数器，没有敏感内容。
+    if (p === '/stats/event' && req.method === 'POST') {
+      const raw = await readBody(req, 4096);
+      let payload;
+      try {
+        payload = JSON.parse(raw.toString('utf8') || '{}');
+      } catch {
+        sendJSON(res, 400, { ok: false, error: 'JSON 格式错误' });
+        return;
+      }
+
+      if (!allowEvent(payload)) {
+        sendJSON(res, 200, { ok: true, skipped: true });
+        return;
+      }
+
+      insertSiteEvent.run(
+        cleanSite(payload.site),
+        payload.type === 'download_click' ? 'download_click' : 'view',
+        String(payload.vid || '').slice(0, 64),
+        String(payload.path || '').slice(0, 120),
+        todayStr(),
+        new Date().toISOString(),
+      );
+      sendJSON(res, 200, { ok: true });
+      return;
+    }
+
+    if (p === '/stats/summary' && req.method === 'GET') {
+      sendJSON(res, 200, statsSummary());
+      return;
+    }
+
     if (p === '/scope' && req.method === 'GET') {
       const rows = db.prepare('SELECT category, project, COUNT(*) AS n FROM neurons GROUP BY category, project').all();
       const map = new Map();
@@ -879,6 +1089,20 @@ const server = http.createServer(async (req, res) => {
     // ---- 以下需要鉴权 ----
     if (!authed(req)) {
       sendJSON(res, 401, { ok: false, error: '未授权：需要 Bearer token' });
+      return;
+    }
+
+    if (p === '/atlas/editorial' && req.method === 'GET') {
+      sendJSON(res, 200, atlas.editorial());
+      return;
+    }
+
+    if (p === '/atlas/editorial' && req.method === 'POST') {
+      let input;
+      try { input = JSON.parse((await readBody(req, 8192)).toString('utf8')); }
+      catch { sendJSON(res, 400, { ok: false, error: '星图记录格式有误' }); return; }
+      const error = atlas.save(input);
+      sendJSON(res, error ? 400 : 200, error ? { ok: false, error } : { ok: true });
       return;
     }
 
@@ -1146,8 +1370,8 @@ const server = http.createServer(async (req, res) => {
           db.prepare("DELETE FROM knowledge WHERE session_id = ? AND kind IN ('progress','pitfall','decision','preference','insight','output')").run(session.id);
 
           // 落成 knowledge 条目，供 memory_load 读取
-          const project = String(parsed.project || session.project || 'general').slice(0, 48);
-          const cat = ['编程', '运维', '设计', '论文', '其他'].includes(parsed.category) ? parsed.category : '编程';
+          const project = String(session.project || parsed.project || 'general').slice(0, 48);
+          const cat = ['编程', '运维', '设计', '论文', '其他'].includes(parsed.category) ? parsed.category : '其他';
           upsertKnowledge.run(project, 'progress', String(parsed.title || session.title).slice(0, 120), String(parsed.summary || '').slice(0, 4000), JSON.stringify([cat]), 'done', session.id, nowIso, nowIso);
           putPairs(project, cat, session.id, 'pitfall', 'active', parsed.pitfalls, 3, nowIso);
           putPairs(project, cat, session.id, 'preference', 'active', parsed.preferences, 3, nowIso);

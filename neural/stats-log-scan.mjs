@@ -1,4 +1,4 @@
-﻿// 从 nginx 日志统计真实下载量。
+// 从 nginx 日志统计真实下载量。
 //
 // 为什么不数「点下载按钮」：点了不等于传完。这里的数字来自 nginx 自己记的 body_bytes_sent，
 // 是唯一可信的「服务器确实传出去多少」。没有真实 IP，无法把断点续传的多条 Range 请求
@@ -28,7 +28,7 @@ const FILE_ROOTS = {
 
 function classify(urlPath) {
   const clean = urlPath.split('?')[0];
-  if (!/\.(apk|zip)$/i.test(clean)) return null;
+  if (!/\.(apk|zip|exe)$/i.test(clean)) return null;
   for (const [prefix, info] of Object.entries(FILE_ROOTS)) {
     if (!clean.startsWith(prefix)) continue;
     const name = clean.slice(prefix.length);
@@ -145,6 +145,27 @@ for (const base of LOGS) {
   putState.run(base, offset + read, String(stat.ino));
 }
 
+
+// ---------- 在用设备数 ----------
+// 只有超星题库能算出真实去重数：提交表里有 user_hash。
+// 其它站没有这种标识，就不写，避免前端显示一个编出来的数。
+const putInstall = db.prepare(`
+  INSERT INTO site_installs (site, count, source, updated_at) VALUES (?, ?, ?, ?)
+  ON CONFLICT(site) DO UPDATE SET count = excluded.count, source = excluded.source, updated_at = excluded.updated_at
+`);
+
+try {
+  const lib = new DatabaseSync('/opt/apps/chaoxing-lib/data/shared.db', { readOnly: true });
+  const row = lib.prepare("SELECT COUNT(DISTINCT user_hash) AS n FROM submissions WHERE user_hash IS NOT NULL AND user_hash <> ''").get();
+  lib.close();
+  if (row && row.n > 0) {
+    putInstall.run('chaoxing', row.n, 'shared.db/user_hash', now);
+    console.log(`  超星在用设备: ${row.n}`);
+  }
+} catch (err) {
+  // 题库库名或路径变了不该影响下载统计，跳过就行
+  console.log(`  跳过在用设备统计: ${err.message}`);
+}
 const totals = db.prepare('SELECT site, SUM(bytes) AS b, SUM(requests) AS r FROM download_facts GROUP BY site').all();
 console.log(`扫描 ${scanned} 行，计入 ${counted} 条下载请求`);
 for (const t of totals) console.log(`  ${t.site}: ${(t.b / 1048576).toFixed(1)} MB, ${t.r} 次请求`);
