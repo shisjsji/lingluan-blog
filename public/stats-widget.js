@@ -62,13 +62,13 @@
     ':host{all:initial}',
     '.wrap{position:fixed;left:14px;bottom:14px;z-index:30;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;',
     '  font-size:11px;line-height:1;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:9px;',
-    '  padding:9px 11px 8px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);box-shadow:0 5px 18px rgba(0,0,0,.07);',
+    '  padding:8px 10px 7px;max-width:210px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(9px);box-shadow:0 4px 14px rgba(0,0,0,.05);',
     '  opacity:.9;transition:opacity .2s ease;user-select:none}',
     '.wrap:hover{opacity:1}',
-    '.row{display:flex;gap:13px;align-items:flex-end}',
+    '.row{display:flex;gap:12px;align-items:flex-end}',
     '.cell{display:flex;flex-direction:column;gap:4px;min-width:40px}',
     '.k{font-size:9px;letter-spacing:.06em;color:var(--muted);white-space:nowrap}',
-    '.v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--fg)}',
+    '.v{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--fg)}',
     '.v i{font-style:normal;color:var(--accent)}',
     '.foot{margin-top:7px;font-size:9px;color:var(--muted);display:flex;gap:6px;align-items:center}',
     '.dot{width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.75;flex:none}',
@@ -110,8 +110,8 @@
     var dark = isDark();
     box.style.setProperty('--fg', dark ? '#e7e9e7' : '#1f2933');
     box.style.setProperty('--muted', dark ? '#9aa0a6' : '#6b7280');
-    box.style.setProperty('--bg', dark ? 'rgba(22,24,23,.8)' : 'rgba(255,255,255,.84)');
-    box.style.setProperty('--line', dark ? 'rgba(255,255,255,.13)' : 'rgba(0,0,0,.09)');
+    box.style.setProperty('--bg', dark ? 'rgba(22,24,23,.9)' : 'rgba(255,255,255,.95)');
+    box.style.setProperty('--line', dark ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.1)');
     box.style.setProperty('--accent', dark ? ACCENT_DARK : ACCENT);
     // 页面切主题时跟着变
     if (paint.prev !== dark) { paint.prev = dark; }
