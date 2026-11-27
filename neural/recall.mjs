@@ -334,3 +334,11 @@ export function recall(rows, query, opts = {}) {
 }
 
 export const RECALL_META = { WEIGHTS, PARAMS, KIND_TRAIT };
+
+// 单条记忆的激活量：importance × 指数衰减。给 /brief 排序用（没有查询时，
+// 该看的顺序就是「重要且还新鲜」，而不是「谁最后被改过」）。
+export function activation(kind, updatedAtIso) {
+  const trait = KIND_TRAIT[kind] || { importance: 0.5, halfLife: 30 };
+  if (trait.halfLife === Infinity) return trait.importance;
+  return trait.importance * Math.pow(0.5, daysSince(updatedAtIso) / trait.halfLife);
+}
