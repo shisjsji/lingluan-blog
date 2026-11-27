@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   BookOpen,
   Brain,
+  Radar,
   BriefcaseBusiness,
   Check,
   ChevronRight,
@@ -52,6 +53,7 @@ const projects = [
 const gallery = galleryContent.map((item) => ({ ...item, src: asset(`images/gallery/${item.file}`) }))
 
 const NeuralPage = lazy(() => import('./neural/NeuralPage'))
+const RecallPage = lazy(() => import('./neural/RecallPage'))
 
 // 神经元页是全屏控制台，不叠页脚
 function SiteFooter() {
@@ -97,6 +99,14 @@ function App() {
               </Suspense>
             }
           />
+          <Route
+            path="/recall"
+            element={
+              <Suspense fallback={<div className="neural-fallback">正在接入召回台…</div>}>
+                <RecallPage />
+              </Suspense>
+            }
+          />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/guestbook" element={<GuestbookPage />} />
           <Route path="*" element={<NotFoundPage />} />
@@ -124,6 +134,7 @@ function Header({ dark, setDark }) {
     { to: '/notes', label: '笔记', icon: BookOpen },
     { to: '/projects', label: '项目', icon: BriefcaseBusiness },
     { to: '/neural', label: '神经元', icon: Brain },
+  { to: '/recall', label: '召回台', icon: Radar },
     { to: '/guestbook', label: '留言', icon: MessageSquare },
   ]
   return (
