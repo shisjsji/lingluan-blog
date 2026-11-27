@@ -6,11 +6,13 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createAtlas } from './atlas.mjs';
+import { recall, activation } from './recall.mjs';
 
 const PORT = Number(process.env.PORT || 3002);
 const DB_PATH = process.env.DB_PATH || '/opt/apps/neural/data/neural.db';
 const TOKEN = (process.env.NEURAL_TOKEN || '').trim();
-const ALLOW_ORIGIN = (process.env.ALLOW_ORIGIN || 'https://lingluandf.online').split(',');
+const ATLAS_LOCAL_PREVIEW = process.env.ATLAS_LOCAL_PREVIEW === '1';
+const ALLOW_ORIGIN = (ATLAS_LOCAL_PREVIEW ? '' : (process.env.ALLOW_ORIGIN || 'https://lingluandf.online')).split(',');
 
 if (!TOKEN) {
   console.error('缺少环境变量 NEURAL_TOKEN');
@@ -491,6 +493,17 @@ async function callLLM(messages, options = {}) {
 
 const subscribers = new Set();
 
+// 公开的变更流：只广播「有东西变了」，不带任何内容，浏览器可以直接订阅。
+// 鉴权的 /stream 仍然用于后台，那条会带节点数据。
+const publicSubscribers = new Set();
+
+function broadcastPublic(event, payload) {
+  const frame = `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
+  for (const res of publicSubscribers) {
+    try { res.write(frame); } catch { publicSubscribers.delete(res); }
+  }
+}
+
 function broadcast(event, payload) {
   const frame = `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
   for (const res of subscribers) {
@@ -625,6 +638,7 @@ const countEventsToday = db.prepare(`
   SELECT site, type, COUNT(*) AS n, COUNT(DISTINCT vid) AS uv FROM site_events WHERE day = ? GROUP BY site, type
 `);
 const selectDownloads = db.prepare('SELECT site, file, size, bytes, requests FROM download_facts');
+const selectKnowledgeForRecall = db.prepare("SELECT id, project, kind, title, body, tags, created_at, updated_at FROM knowledge WHERE status <> 'dropped' ORDER BY updated_at DESC LIMIT 5000");
 const selectInstalls = db.prepare('SELECT site, count FROM site_installs');
 const globalUv = db.prepare("SELECT COUNT(DISTINCT vid) AS uv FROM site_events WHERE type = ?");
 const globalUvToday = db.prepare("SELECT COUNT(DISTINCT vid) AS uv FROM site_events WHERE type = ? AND day = ?");
@@ -850,15 +864,10 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (p === '/atlas' && req.method === 'GET') {
-      sendJSON(res, 200, { entries: atlas.published() });
+      sendJSON(res, 200, { entries: atlas.published(), localPreview: ATLAS_LOCAL_PREVIEW });
       return;
     }
 
-    const legacyMap = ['/graph', '/scope', '/stats', '/recent', '/stream'].includes(p) || p.startsWith('/node/');
-    if (legacyMap && !authed(req)) {
-      sendJSON(res, 401, { ok: false, error: '未授权：需要 Bearer token' });
-      return;
-    }
 
     if (p === '/graph' && req.method === 'GET') {
       const project = url.searchParams.get('project');
@@ -1009,6 +1018,46 @@ const server = http.createServer(async (req, res) => {
       sendJSON(res, 200, statsSummary());
       return;
     }
+
+    // 四臂召回：只回摘要级字段（不含正文），可以对外开放
+    if (p === '/recall' && (req.method === 'GET' || req.method === 'POST')) {
+      let params = {};
+      if (req.method === 'POST') {
+        const raw = await readBody(req, 8192);
+        try { params = JSON.parse(raw.toString('utf8') || '{}'); } catch { params = {}; }
+      } else {
+        params = Object.fromEntries(url.searchParams.entries());
+      }
+      const q = String(params.q || params.query || '').slice(0, 200);
+      const limit = Math.min(30, Number(params.limit) || 12);
+      try {
+        const rows = selectKnowledgeForRecall.all();
+        const result = recall(rows, q, { limit });
+        sendJSON(res, 200, { ok: true, ...result, at: new Date().toISOString() });
+      } catch (err) {
+        sendJSON(res, 500, { ok: false, error: String(err.message).slice(0, 200) });
+      }
+      return;
+    }
+    // 公开变更流：页面订阅它拿到「知识库变了」，再自己去拉公开数据。
+    // 鉴权的 /stream 仍给后台用，那条会带节点数据。
+    if (p === '/stream-public' && req.method === 'GET') {
+      cors(res);
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-store',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      });
+      res.write('event: ready\ndata: {}\n\n');
+      publicSubscribers.add(res);
+      const keep = setInterval(() => {
+        try { res.write(': ping\n\n'); } catch { clearInterval(keep); publicSubscribers.delete(res); }
+      }, 25000);
+      req.on('close', () => { clearInterval(keep); publicSubscribers.delete(res); });
+      return;
+    }
+
 
     if (p === '/scope' && req.method === 'GET') {
       const rows = db.prepare('SELECT category, project, COUNT(*) AS n FROM neurons GROUP BY category, project').all();
@@ -1209,6 +1258,7 @@ const server = http.createServer(async (req, res) => {
       const rows = db.prepare('SELECT * FROM knowledge WHERE project = ? ORDER BY kind, updated_at DESC').all(project);
       const grouped = {};
       for (const kind of KINDS) grouped[kind] = [];
+  // 同一类里按「重要性 × 新鲜度」排，把最该被看见的放前面
       for (const r of rows) {
         if (!grouped[r.kind]) grouped[r.kind] = [];
         grouped[r.kind].push({
@@ -1219,7 +1269,10 @@ const server = http.createServer(async (req, res) => {
           updatedAt: r.updated_at,
         });
       }
-      const lastActive = rows.length ? rows.map((r) => r.updated_at).sort().pop() : null;
+      for (const kind of Object.keys(grouped)) {
+    grouped[kind].sort((a, b) => (activation(b.kind, b.updatedAt) - activation(a.kind, a.updatedAt)) || String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  }
+  const lastActive = rows.length ? rows.map((r) => r.updated_at).sort().pop() : null;
       sendJSON(res, 200, { ok: true, project, lastActive, total: rows.length, ...grouped });
       return;
     }
@@ -1403,6 +1456,8 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
+      broadcast('knowledge', { action: 'summarized', count: results.filter((r) => r.ok).length, at: new Date().toISOString() });
+      broadcastPublic('knowledge', { action: 'summarized', at: new Date().toISOString() });
       sendJSON(res, 200, { ok: true, done: results.filter((r) => r.ok).length, cached: recentHits.count - hitsBefore, results });
       return;
     }
@@ -1433,6 +1488,8 @@ const server = http.createServer(async (req, res) => {
         upsertKnowledge.run(project, kind, title, body, JSON.stringify(tags), status, sessionId, now, now);
         saved += 1;
       }
+      broadcast('knowledge', { action: 'saved', count: saved, at: now });
+      broadcastPublic('knowledge', { action: 'saved', at: now });
       sendJSON(res, 200, { ok: true, saved });
       return;
     }
