@@ -23,7 +23,7 @@ function layoutPoints(items) {
     const group = byKind.get(kind);
     const baseAngle = (ki / Math.max(1, kinds.length)) * Math.PI * 2;
     group.forEach((it, i) => {
-      const r = 0.06 + 0.42 * Math.pow(1 - Math.min(1, it.score), 1.6);
+      const r = 0.10 + 0.40 * Math.pow(1 - Math.min(1, it.score), 1.6);
       const a = baseAngle + (i - (group.length - 1) / 2) * 0.22;
       points.set(it.id, {
         x: 0.5 + Math.cos(a) * r,
@@ -94,12 +94,12 @@ export default function RecallPage() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#080d1d');
     const camera = new THREE.PerspectiveCamera(48, 1, 1, 600);
-    camera.position.set(0, 42, 118);
+    camera.position.set(0, 62, 185);
     const controls = new OrbitControls(camera, canvas);
     controls.enablePan = false;
     controls.enableDamping = true;
-    controls.minDistance = 60;
-    controls.maxDistance = 260;
+    controls.minDistance = 90;
+    controls.maxDistance = 430;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
 
     // 背景星尘
@@ -173,8 +173,8 @@ export default function RecallPage() {
         for (const it of list) {
           const p = pts.get(it.id);
           if (!p) continue;
-          const x = (p.x - .5) * 150;
-          const z = (p.y - .5) * 132;
+          const x = (p.x - .5) * 320;
+          const z = (p.y - .5) * 280;
           const y = Math.sin(x * .05 + z * .04) * 5;
           const vec = new THREE.Vector3(x, y, z);
           current.set(it.id, vec);
